@@ -240,7 +240,7 @@ def test():
 
 test()
 
-'''
+'''d
 tweetarr = extract_tweets()
 awards = find_awards(tweetarr)
 print(awards)
