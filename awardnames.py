@@ -10,14 +10,16 @@ with open('gg2013.json', 'r') as f:
 def extract_tweets():
     tweetarr = []
     # check it has best/award AND another kw?
-    keywords = ['wins', 'won', 'win', 'named', 'nominated', 'nominee', 'award', 'best', 'goes to', 'up for']
+    keywords = ['wins', 'won', 'win', 'named', 'nominated', 'nominee', 'award', 'goes to', 'up for']
     for element in data:
         tweet = element['text']
         #if tweet.split()[0] == 'RT':
             #continue
         for keyword in keywords:
-            if tweet.lower().__contains__(keyword):
-                tweetarr.append(tweet.lower())
+            tweet = tweet.lower()
+            if tweet.__contains__(keyword):
+                if tweet.__contains__('best'):
+                    tweetarr.append(tweet)
                 break
     return tweetarr
 
@@ -26,7 +28,7 @@ def find_awards(tweets):
     award_names = []
     prohibited_punctuation = ['.','?','!']
     prohibited_elements = ['#','http']
-    allowed_POS = ["NOUN","ADJ"]
+    allowed_POS = ["NOUN","ADJ"] # start w adj, end w noun
     prohibited_POS = ["ADP","AUX","CONJ","DET","PRON","SCONJ"]
     before_keywords = ['award for', 'wins for','wins','won','named','win','nominated for','up for']
     after_keywords = ['goes to','went to']
@@ -80,41 +82,37 @@ def find_awards(tweets):
                     portion = tweet[index+1:index+2+i]
                     firstword = portion[0]
                     lastword = portion[len(portion)-1]
-                    if firstword != 'best':
+                    firstword_pos = nlp(firstword)[0].pos_
+                    if (firstword_pos != "ADJ") | (firstword_pos != "NOUN"):
                         continue
+                    if nlp(lastword)[0].pos_ != "NOUN":
+                        continue
+                    '''
                     continuing = 1
-                    for symbol in allowed_POS:
-                        if nlp(lastword).pos_ == symbol:
+                    for symbol in allowed_POS: # or "NOUN"
+                        if nlp(lastword)[0].pos_ == symbol:
                             continuing = 0
                     if continuing:
                         continue
+                    '''
                     portion = ' '.join(portion)
-                    if not portion.__contains__('best'):
-                        continue        
+                    #if not portion.__contains__('best'):
+                    #    continue        
                     for symbol in prohibited_punctuation:
                         if lastword[len(lastword)-1] == symbol:
                             portion = portion[0:len(portion)-1]
-                            # cut off last symbol  
+                            curr_list[portion] = 1
+                            breaking = 1
+                            # cut off punctuation
                     for symbol in prohibited_elements:
                         if portion.__contains__(symbol):
-                            breaking = 1        
-                    #if lastword == prep | lastword == article:
-                        #continue
+                            breaking = 1  
                     if breaking:
                         break
-
-                    '''
-                    for symbol in punctuation:
-                        if 
-                        if lastword[len(lastword)-1] == symbol:
-                            portion = ' '.join(portion)
-                            portion = portion[0:len(portion)-1]
-                            breaking = 1
-                    if not breaking:
-                        portion = ' '.join(portion)
-                    if portion.__contains__('http'):
-                        break
-                    '''
+                    #if nlp(lastword[len(lastword)-1])[0].pos_ == "PUNCT":
+                    #    portion = portion[0:len(portion)-1]
+                        # cut off punctuation
+                        # don't want to standardize incorrect phrases
                     curr_list[portion] = 1
                 award_names = award_names + [curr_list]
                 break
@@ -137,36 +135,24 @@ def find_awards(tweets):
                     firstword = portion[0]
                     lastword = portion[len(portion)-1]
                     continuing = 1
-                    for symbol in allowed_POS:
-                        if nlp(firstword).pos_ == symbol:
-                            continuing = 0
-                    if continuing:
+                    if nlp(firstword)[0].pos_ != "ADJ":
                         continue
                     portion = ' '.join(portion)
-                    if not portion.__contains__('best'):
-                        continue 
+                    #if not portion.__contains__('best'):
+                    #    continue 
                     for symbol in prohibited_punctuation:
                         if firstword[len(firstword)-1] == symbol:
                             breaking = 1
-                        if lastword[len(lastword)-1] == symbol:
-                            portion = portion[0:len(portion)-1]
-                            # cut off last symbol  
+                        # check leftmost word isn't in prev sentence
+                    #if nlp(lastword[len(lastword)-1])[0].pos_ == "PUNCT":
+                    #    portion = portion[0:len(portion)-1]
+                    #    # cut off punctuation
+                        # don't need to cut off end punct?
                     for symbol in prohibited_elements:
                         if portion.__contains__(symbol):
                             breaking = 1
                     if breaking:
                         break
-                    '''        
-                    lastword = portion[len(portion)-1]
-                    #if lastword == prep | lastword == article:
-                        #continue
-                    portion = ' '.join(portion)
-                    for symbol in punctuation:
-                        if lastword[len(lastword)-1] == symbol:
-                            portion = portion[0:len(portion)-1]
-                    if portion.__contains__('http'):
-                        break
-                    '''
                     curr_list[portion] = 1
                 award_names = award_names + [curr_list]
                 break
@@ -184,7 +170,6 @@ def rank_awards(awards):
         for list1 in awards:
             if item in list1:
                 list1[item] = seen[item]
-    #return awards
     updated_seen = {} # populate w most freq from each tweet (no duplicates)
     for list2 in awards:
         if len(list2)==0:
@@ -233,16 +218,17 @@ def get_max_freq(dict):
     return (curr_max_award, curr_max)
 
 def test():
-    str = ("dog")
-    new = nlp(str)
-    if new.pos_ == "NOUN":
-        return 1
+    str = ("dog here")
+    str = str.split()
+    lastword = str[0]
+    new = nlp(lastword)
+    if new[0].pos_ == "NOUN":
+        print("noun")
+    else:
+        print("not")
 
-test()
 
-'''d
 tweetarr = extract_tweets()
 awards = find_awards(tweetarr)
-print(awards)
-#print(rank_awards(awards))
-'''
+#print(awards)
+print(rank_awards(awards))
