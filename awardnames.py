@@ -1,21 +1,20 @@
 import json
 import numpy as np
+import spacy
+
+nlp = spacy.load("en_core_web_sm")
 
 with open('gg2013.json', 'r') as f:
     data = json.load(f)
 
-def text():
-    str = "this is my test string"
-    keyword = 'is my'
-    print(keyword.index(' '))
-
 def extract_tweets():
     tweetarr = []
+    # check it has best/award AND another kw?
     keywords = ['wins', 'won', 'win', 'named', 'nominated', 'nominee', 'award', 'best', 'goes to', 'up for']
     for element in data:
         tweet = element['text']
-        if tweet.split()[0] == 'RT':
-            continue
+        #if tweet.split()[0] == 'RT':
+            #continue
         for keyword in keywords:
             if tweet.lower().__contains__(keyword):
                 tweetarr.append(tweet.lower())
@@ -25,35 +24,99 @@ def extract_tweets():
 
 def find_awards(tweets):
     award_names = []
-    punctuation = ['.','?']
-    before_keywords = ['wins for','wins','won','named','win','nominated for','up for','award for']
+    prohibited_punctuation = ['.','?','!']
+    prohibited_elements = ['#','http']
+    allowed_POS = ["NOUN","ADJ"]
+    prohibited_POS = ["ADP","AUX","CONJ","DET","PRON","SCONJ"]
+    before_keywords = ['award for', 'wins for','wins','won','named','win','nominated for','up for']
     after_keywords = ['goes to','went to']
     for origtweet in tweets:
-        curr_list = []
+        curr_list = {}
         ind = 0 
         tweet = origtweet.split()
+        '''
+        if tweet.__contains__('best'):
+            index = tweet.index('best')
+            for i in range(len(tweet)-index-1):
+                breaking = 0
+                if i == 0:
+                    continue
+                portion =  tweet[index:index+1+i]
+                lastword = portion[len(portion)-1]
+                #if lastword == prep | lastword == article:
+                    #continue
+                for symbol in punctuation:
+                    if lastword[len(lastword)-1] == symbol:
+                        portion = ' '.join(portion)
+                        portion = portion[0:len(portion)-1]
+                        breaking = 1
+                if not breaking:
+                    portion = ' '.join(portion)
+                if portion.__contains__('http'):
+                    break
+                #curr_list = curr_list+[portion]
+                curr_list[portion] = 1
+                if breaking:
+                    break
+            award_names = award_names + [curr_list] # need to stay in same index
+            #tweetnum = tweetnum + 1
+        '''
         for keyword in before_keywords:
+            breaking = 0
             if keyword.__contains__(' '):
                 if origtweet.__contains__(keyword):
                     space_index = keyword.index(' ')
                     word1 = keyword[0:space_index]
                     word2 = keyword[space_index+1:len(keyword)]
                     keyword = word2
+                else:
+                    continue
             if tweet.__contains__(keyword):
+                ind = 1
                 index = tweet.index(keyword)
                 for i in range(len(tweet)-index-1):
-                    portion = tweet[index+1:index+2+i]
-                    portion = ' '.join(portion)
                     if i == 0:
+                        continue    
+                    portion = tweet[index+1:index+2+i]
+                    firstword = portion[0]
+                    lastword = portion[len(portion)-1]
+                    if firstword != 'best':
                         continue
+                    continuing = 1
+                    for symbol in allowed_POS:
+                        if nlp(lastword).pos_ == symbol:
+                            continuing = 0
+                    if continuing:
+                        continue
+                    portion = ' '.join(portion)
+                    if not portion.__contains__('best'):
+                        continue        
+                    for symbol in prohibited_punctuation:
+                        if lastword[len(lastword)-1] == symbol:
+                            portion = portion[0:len(portion)-1]
+                            # cut off last symbol  
+                    for symbol in prohibited_elements:
+                        if portion.__contains__(symbol):
+                            breaking = 1        
+                    #if lastword == prep | lastword == article:
+                        #continue
+                    if breaking:
+                        break
+
+                    '''
+                    for symbol in punctuation:
+                        if 
+                        if lastword[len(lastword)-1] == symbol:
+                            portion = ' '.join(portion)
+                            portion = portion[0:len(portion)-1]
+                            breaking = 1
+                    if not breaking:
+                        portion = ' '.join(portion)
                     if portion.__contains__('http'):
                         break
-                    curr_list = curr_list+[portion]
-                    for symbol in punctuation:
-                        if portion[len(portion)-1] == symbol:
-                            break
+                    '''
+                    curr_list[portion] = 1
                 award_names = award_names + [curr_list]
-                ind = 1
                 break
         if ind:
             continue
@@ -67,17 +130,46 @@ def find_awards(tweets):
             if tweet.__contains__(keyword):
                 index = tweet.index(keyword)
                 for i in range(index):
-                    portion = tweet[i:index]
-                    portion = ' '.join(portion)
                     if i == 0:
+                        continue 
+                    breaking = 0
+                    portion = tweet[i:index]
+                    firstword = portion[0]
+                    lastword = portion[len(portion)-1]
+                    continuing = 1
+                    for symbol in allowed_POS:
+                        if nlp(firstword).pos_ == symbol:
+                            continuing = 0
+                    if continuing:
                         continue
+                    portion = ' '.join(portion)
+                    if not portion.__contains__('best'):
+                        continue 
+                    for symbol in prohibited_punctuation:
+                        if firstword[len(firstword)-1] == symbol:
+                            breaking = 1
+                        if lastword[len(lastword)-1] == symbol:
+                            portion = portion[0:len(portion)-1]
+                            # cut off last symbol  
+                    for symbol in prohibited_elements:
+                        if portion.__contains__(symbol):
+                            breaking = 1
+                    if breaking:
+                        break
+                    '''        
+                    lastword = portion[len(portion)-1]
+                    #if lastword == prep | lastword == article:
+                        #continue
+                    portion = ' '.join(portion)
+                    for symbol in punctuation:
+                        if lastword[len(lastword)-1] == symbol:
+                            portion = portion[0:len(portion)-1]
                     if portion.__contains__('http'):
                         break
-                    curr_list = curr_list+[portion]
-                    for symbol in punctuation:
-                        if portion[len(portion)-1] == symbol:
-                            break
+                    '''
+                    curr_list[portion] = 1
                 award_names = award_names + [curr_list]
+                break
     return(award_names)
 
 def rank_awards(awards):
@@ -87,48 +179,40 @@ def rank_awards(awards):
             if award in seen:
                 seen[award] = seen[award] + 1
             else:
-                seen[award] = 1
-    '''
-    most_frequent = {}
-    awards = list(seen.keys())
-    freqs = list(seen.values())
-    for i in range(len(awards)):
-        while i < 30:
-            most_frequent[awards[i]] = freqs[i] # populate with first 30 awards
-        highest_freqs = list(most_frequent.values()) # 30 highest freqs
-        curr_min = min(highest_freqs) # 30th highest freq
-        curr_freq = freqs[i] # curr freq
-        if curr_freq > curr_min:
-            min_index = highest_freqs.index(curr_min) # index in most freq
-            top_awards = list(most_frequent.keys()) # 30 most freq awards
-            pop_award = top_awards[min_index] # award name
-            add_award = awards[i] # curr award
-            most_frequent.pop(pop_award)
-            most_frequent[add_award] = curr_freq    
-    '''
-    #print(seen)
+                seen[award] = 1            
+    for item in seen: # update freq of each str in awards
+        for list1 in awards:
+            if item in list1:
+                list1[item] = seen[item]
+    #return awards
+    updated_seen = {} # populate w most freq from each tweet (no duplicates)
+    for list2 in awards:
+        if len(list2)==0:
+            continue
+        most_freq_pair = get_max_freq(list2)
+        if most_freq_pair[0] not in updated_seen:
+            updated_seen[most_freq_pair[0]] = most_freq_pair[1]
     most_frequent = {}
     i = 0
-    for award in seen:
-        if i < 30:
-            most_frequent[award] = seen[award]
+    for award in updated_seen:
+        if i < 25:
+            most_frequent[award] = updated_seen[award]
             i = i + 1
             continue
-        curr_freq = seen[award]
+        curr_freq = updated_seen[award]
         min_pair = get_min_freq(most_frequent)
         min_freq = min_pair[1]
         if curr_freq > min_freq:
             min_freq_award = min_pair[0]
             most_frequent.pop(min_freq_award)
             most_frequent[award] = curr_freq
-    #print(most_frequent)
     return most_frequent
 
 def get_min_freq(dict):
     for key in dict:
         curr_min = dict[key]
         curr_min_award = key
-        exit
+        break
     for key in dict:
         val = dict[key]
         if val < curr_min:
@@ -136,25 +220,29 @@ def get_min_freq(dict):
             curr_min_award = key
     return (curr_min_award, curr_min)
 
+def get_max_freq(dict):
+    for key in dict:
+        curr_max = dict[key]
+        curr_max_award = key
+        break
+    for key in dict:
+        val = dict[key]
+        if val > curr_max:
+            curr_max = val
+            curr_max_award = key
+    return (curr_max_award, curr_max)
 
 def test():
-    dict={'fake':0}
-    dict={'fake':0}
-    vals = list(dict.values())
-    vals = list(dict.values())
-    #print(vals)
-    dict["a"]=1
-    dict["b"]=2
-    dict["c"]=3
+    str = ("dog")
+    new = nlp(str)
+    if new.pos_ == "NOUN":
+        return 1
 
-    print(dict.keys())
+test()
 
-#test()
-
-#print(find_awards(["rt @seanoconnz: did argo get nominated for best original song for this \"dream on\" song? hope so, it sounds great. #goldenglobes",
-#"best original song goes to \"skyfall\" by adele! #goldenglobes"]))
+'''
 tweetarr = extract_tweets()
 awards = find_awards(tweetarr)
-#print(awards)
-print(rank_awards(awards))
-
+print(awards)
+#print(rank_awards(awards))
+'''
