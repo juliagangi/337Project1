@@ -13,8 +13,8 @@ def extract_tweets():
     keywords = ['wins', 'won', 'win', 'named', 'nominated', 'nominee', 'award', 'goes to', 'up for']
     for element in data:
         tweet = element['text']
-        #if tweet.split()[0] == 'RT':
-            #continue
+        if tweet.split()[0] == 'RT':
+            continue
         for keyword in keywords:
             tweet = tweet.lower()
             if tweet.__contains__(keyword):
@@ -96,8 +96,9 @@ def find_awards(tweets):
                         continue
                     '''
                     portion = ' '.join(portion)
-                    #if not portion.__contains__('best'):
-                    #    continue        
+                    if not portion.__contains__('best'):
+                        continue        
+                    
                     for symbol in prohibited_punctuation:
                         if lastword[len(lastword)-1] == symbol:
                             portion = portion[0:len(portion)-1]
@@ -109,6 +110,7 @@ def find_awards(tweets):
                             breaking = 1  
                     if breaking:
                         break
+                    
                     #if nlp(lastword[len(lastword)-1])[0].pos_ == "PUNCT":
                     #    portion = portion[0:len(portion)-1]
                         # cut off punctuation
@@ -138,8 +140,9 @@ def find_awards(tweets):
                     if nlp(firstword)[0].pos_ != "ADJ":
                         continue
                     portion = ' '.join(portion)
-                    #if not portion.__contains__('best'):
-                    #    continue 
+                    if not portion.__contains__('best'):
+                        continue 
+                    
                     for symbol in prohibited_punctuation:
                         if firstword[len(firstword)-1] == symbol:
                             breaking = 1
@@ -153,6 +156,7 @@ def find_awards(tweets):
                             breaking = 1
                     if breaking:
                         break
+                    
                     curr_list[portion] = 1
                 award_names = award_names + [curr_list]
                 break
@@ -177,9 +181,38 @@ def rank_awards(awards):
         most_freq_pair = get_max_freq(list2)
         if most_freq_pair[0] not in updated_seen:
             updated_seen[most_freq_pair[0]] = most_freq_pair[1]
+    # combine different namings of same award
+    
+    for award1 in updated_seen:
+        for award2 in updated_seen:
+            if award2 != award1:
+                if updated_seen[award1] != 0 and updated_seen[award2] != 0:
+                    if get_nominees(award1).sort() == get_nominees(award2).sort():
+                        if isinstance(updated_seen[award1],int):
+                            updated_seen[award1] = [[award2],updated_seen[award1] + updated_seen[award2]]
+                        else:
+                            updated_seen[award1][0].append(award2)
+                            updated_seen[award1][1] = updated_seen[award1][1] + updated_seen[award2]
+                        updated_seen[award2] = 0
+    
+    # remove redundant awards    
+    final_seen = {}
+    for key in updated_seen:
+        if updated_seen[key] != 0:
+            final_seen[key] = updated_seen[key]
+    i = 0
+    most_frequent = []
+    for award in final_seen:
+        if final_seen[award][1] > 1:
+            most_frequent.append(award[0].append(award))
+    return most_frequent
+
+           
+    '''
     most_frequent = {}
     i = 0
-    for award in updated_seen:
+    for award in final_seen:
+        # if updated_seen[award][1] > thres: most_frequent.append(award[0].append(award))
         if i < 25:
             most_frequent[award] = updated_seen[award]
             i = i + 1
@@ -191,7 +224,18 @@ def rank_awards(awards):
             min_freq_award = min_pair[0]
             most_frequent.pop(min_freq_award)
             most_frequent[award] = curr_freq
+    '''
     return most_frequent
+
+def get_min_in_list(list): # list of 2-item lists
+    curr_min_award = list[0][0]
+    curr_min = list[0][1]
+    for i in range(len(list)):
+        val = list[i][1]
+        if val < curr_min:
+            curr_min = val
+            curr_min_award = list[i][0]
+    return (curr_min_award, curr_min)
 
 def get_min_freq(dict):
     for key in dict:
@@ -217,16 +261,11 @@ def get_max_freq(dict):
             curr_max_award = key
     return (curr_max_award, curr_max)
 
-def test():
-    str = ("dog here")
-    str = str.split()
-    lastword = str[0]
-    new = nlp(lastword)
-    if new[0].pos_ == "NOUN":
-        print("noun")
-    else:
-        print("not")
+def get_nominees(award):
+    return ["here","heree"]
 
+def best_dressed():
+    pass
 
 tweetarr = extract_tweets()
 awards = find_awards(tweetarr)
