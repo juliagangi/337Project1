@@ -7,7 +7,61 @@ nlp = spacy.load("en_core_web_sm")
 with open('gg2013.json', 'r') as f:
     data = json.load(f)
 
-def extract_tweets():
+def best_dressed(data):
+    seen = {}
+    for element in data:
+        tweet = element['text']
+        if tweet.split()[0] == 'RT':
+            continue
+        tweet = tweet.lower()
+        if tweet.__contains__('best dressed'):
+            start = tweet.index('best dressed')
+            appended_best = "best"
+            #print(start)
+            #print("HERE")
+            if start != 0:
+                #print(tweet)
+                prev_char = tweet[start-1]
+                index = start-1
+                chars_to_add = 5
+                while prev_char != ' ' and prev_char != '\n' and index>-1:
+                    appended_best = tweet[index:index+chars_to_add]
+                    index = index - 1
+                    prev_char = tweet[index]
+                    chars_to_add = chars_to_add + 1
+                    #print(appended_best)
+            tweet = tweet.split()
+            #print(tweet)
+            index = tweet.index(appended_best) + 2
+            for i in range(len(tweet)-1):
+                selection = tweet[i:i+2]
+                selection = ' '.join(selection)
+                #print(selection)
+                ent = nlp(selection)[0]
+                if ent.ent_type_ == 'PERSON':
+                    #print("person")
+                    #print(selection)
+                    print("here0")
+                    if selection in seen:
+                        seen[selection] = seen[selection]+1
+                    else:
+                        print("here")
+                        seen[selection]=1
+        print(seen)
+        exit()
+        for item in seen:
+            curr_best = seen[item]
+            curr_best_dressed = item
+            break
+        for item in seen:
+            curr = seen[item]
+            if curr > curr_best:
+                curr_best = curr
+                curr_best_dressed = item
+        return curr_best_dressed
+print(best_dressed(data))
+
+def extract_tweets(data):
     tweetarr = []
     # check it has best/award AND another kw?
     keywords = ['wins', 'won', 'win', 'named', 'nominated', 'nominee', 'award', 'goes to', 'up for']
@@ -261,13 +315,13 @@ def get_max_freq(dict):
             curr_max_award = key
     return (curr_max_award, curr_max)
 
+
 def get_nominees(award):
     return ["here","heree"]
 
-def best_dressed():
-    pass
+def get_awards():
+    tweetarr = extract_tweets(data)
+    awards = find_awards(tweetarr)
+    rank_awards(awards)
 
-tweetarr = extract_tweets()
-awards = find_awards(tweetarr)
-#print(awards)
-print(rank_awards(awards))
+
