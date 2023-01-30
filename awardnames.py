@@ -9,6 +9,7 @@ with open('gg2013.json', 'r') as f:
 
 def best_dressed(data):
     seen = {}
+    forbidden_punct = [',','"','.','!','!','@','#','=',':']
     for element in data:
         tweet = element['text']
         if tweet.split()[0] == 'RT':
@@ -17,10 +18,7 @@ def best_dressed(data):
         if tweet.__contains__('best dressed'):
             start = tweet.index('best dressed')
             appended_best = "best"
-            #print(start)
-            #print("HERE")
             if start != 0:
-                #print(tweet)
                 prev_char = tweet[start-1]
                 index = start-1
                 chars_to_add = 5
@@ -29,41 +27,102 @@ def best_dressed(data):
                     index = index - 1
                     prev_char = tweet[index]
                     chars_to_add = chars_to_add + 1
-                    #print(appended_best)
             tweet = tweet.split()
-            #print(tweet)
             index = tweet.index(appended_best) + 2
             for i in range(len(tweet)-1):
                 selection = tweet[i:i+2]
+                if selection.__contains__('is'):
+                    continue
                 selection = ' '.join(selection)
-                #print(selection)
-                ent = nlp(selection)[0]
+                j = 1
+                new_selection = selection
+                while nlp(selection[len(selection)-j])[0].pos_ == 'PUNCT':
+                    new_selection = selection[0:len(selection)-j]
+                    j = j + 1
+                skip = 0
+                for punct in forbidden_punct:
+                    if new_selection.__contains__(punct):
+                        skip = 1
+                        break
+                if skip:
+                    continue
+                ent = nlp(new_selection)[0] 
                 if ent.ent_type_ == 'PERSON':
-                    #print("person")
-                    #print(selection)
-                    print("here0")
-                    if selection in seen:
-                        seen[selection] = seen[selection]+1
+                    if new_selection in seen:
+                        seen[new_selection] = seen[new_selection]+1
                     else:
-                        print("here")
-                        seen[selection]=1
-        print(seen)
-        exit()
-        for item in seen:
-            curr_best = seen[item]
+                        seen[new_selection]=1
+    for item in seen:
+        curr_best = seen[item]
+        curr_best_dressed = item
+        break
+    for item in seen:
+        curr = seen[item]
+        if curr > curr_best:
+            curr_best = curr
             curr_best_dressed = item
-            break
-        for item in seen:
-            curr = seen[item]
-            if curr > curr_best:
-                curr_best = curr
-                curr_best_dressed = item
-        return curr_best_dressed
-print(best_dressed(data))
+    return curr_best_dressed
+
+def worst_dressed(data):
+    seen = {}
+    forbidden_punct = [',','"','.','!','!','@','#','=',':']
+    for element in data:
+        tweet = element['text']
+        if tweet.split()[0] == 'RT':
+            continue
+        tweet = tweet.lower()
+        if tweet.__contains__('worst dressed'):
+            start = tweet.index('worst dressed')
+            appended_worst = "worst"
+            if start != 0:
+                prev_char = tweet[start-1]
+                index = start-1
+                chars_to_add = 6
+                while prev_char != ' ' and prev_char != '\n' and index>-1:
+                    appended_worst = tweet[index:index+chars_to_add]
+                    index = index - 1
+                    prev_char = tweet[index]
+                    chars_to_add = chars_to_add + 1
+            tweet = tweet.split()
+            index = tweet.index(appended_worst) + 2
+            for i in range(len(tweet)-1):
+                selection = tweet[i:i+2]
+                if selection.__contains__('is'):
+                    continue
+                selection = ' '.join(selection)
+                j = 1
+                new_selection = selection
+                while nlp(selection[len(selection)-j])[0].pos_ == 'PUNCT':
+                    new_selection = selection[0:len(selection)-j]
+                    j = j + 1
+                skip = 0
+                for punct in forbidden_punct:
+                    if new_selection.__contains__(punct):
+                        skip = 1
+                        break
+                if skip:
+                    continue
+                ent = nlp(new_selection)[0] 
+                if ent.ent_type_ == 'PERSON':
+                    if new_selection in seen:
+                        seen[new_selection] = seen[new_selection]+1
+                    else:
+                        seen[new_selection]=1
+    #print(seen)
+    #exit()
+    for item in seen:
+        curr_worst = seen[item]
+        curr_worst_dressed = item
+        break
+    for item in seen:
+        curr = seen[item]
+        if curr > curr_worst:
+            curr_worst = curr
+            curr_worst_dressed = item
+    return curr_worst_dressed
 
 def extract_tweets(data):
     tweetarr = []
-    # check it has best/award AND another kw?
     keywords = ['wins', 'won', 'win', 'named', 'nominated', 'nominee', 'award', 'goes to', 'up for']
     for element in data:
         tweet = element['text']
@@ -77,12 +136,11 @@ def extract_tweets(data):
                 break
     return tweetarr
 
-
 def find_awards(tweets):
     award_names = []
     prohibited_punctuation = ['.','?','!']
     prohibited_elements = ['#','http']
-    allowed_POS = ["NOUN","ADJ"] # start w adj, end w noun
+    allowed_POS = ["NOUN","ADJ"]
     prohibited_POS = ["ADP","AUX","CONJ","DET","PRON","SCONJ"]
     before_keywords = ['award for', 'wins for','wins','won','named','win','nominated for','up for']
     after_keywords = ['goes to','went to']
@@ -90,33 +148,6 @@ def find_awards(tweets):
         curr_list = {}
         ind = 0 
         tweet = origtweet.split()
-        '''
-        if tweet.__contains__('best'):
-            index = tweet.index('best')
-            for i in range(len(tweet)-index-1):
-                breaking = 0
-                if i == 0:
-                    continue
-                portion =  tweet[index:index+1+i]
-                lastword = portion[len(portion)-1]
-                #if lastword == prep | lastword == article:
-                    #continue
-                for symbol in punctuation:
-                    if lastword[len(lastword)-1] == symbol:
-                        portion = ' '.join(portion)
-                        portion = portion[0:len(portion)-1]
-                        breaking = 1
-                if not breaking:
-                    portion = ' '.join(portion)
-                if portion.__contains__('http'):
-                    break
-                #curr_list = curr_list+[portion]
-                curr_list[portion] = 1
-                if breaking:
-                    break
-            award_names = award_names + [curr_list] # need to stay in same index
-            #tweetnum = tweetnum + 1
-        '''
         for keyword in before_keywords:
             breaking = 0
             if keyword.__contains__(' '):
@@ -141,18 +172,9 @@ def find_awards(tweets):
                         continue
                     if nlp(lastword)[0].pos_ != "NOUN":
                         continue
-                    '''
-                    continuing = 1
-                    for symbol in allowed_POS: # or "NOUN"
-                        if nlp(lastword)[0].pos_ == symbol:
-                            continuing = 0
-                    if continuing:
-                        continue
-                    '''
                     portion = ' '.join(portion)
                     if not portion.__contains__('best'):
                         continue        
-                    
                     for symbol in prohibited_punctuation:
                         if lastword[len(lastword)-1] == symbol:
                             portion = portion[0:len(portion)-1]
@@ -164,7 +186,6 @@ def find_awards(tweets):
                             breaking = 1  
                     if breaking:
                         break
-                    
                     #if nlp(lastword[len(lastword)-1])[0].pos_ == "PUNCT":
                     #    portion = portion[0:len(portion)-1]
                         # cut off punctuation
@@ -196,25 +217,23 @@ def find_awards(tweets):
                     portion = ' '.join(portion)
                     if not portion.__contains__('best'):
                         continue 
-                    
+                     #check leftmost word isn't in prev sentence
                     for symbol in prohibited_punctuation:
                         if firstword[len(firstword)-1] == symbol:
                             breaking = 1
-                        # check leftmost word isn't in prev sentence
                     #if nlp(lastword[len(lastword)-1])[0].pos_ == "PUNCT":
-                    #    portion = portion[0:len(portion)-1]
-                    #    # cut off punctuation
-                        # don't need to cut off end punct?
+                        #portion = portion[0:len(portion)-1]
+                        #cut off punctuation
+                        #don't need to cut off end punct?
                     for symbol in prohibited_elements:
                         if portion.__contains__(symbol):
                             breaking = 1
                     if breaking:
                         break
-                    
                     curr_list[portion] = 1
                 award_names = award_names + [curr_list]
                 break
-    return(award_names)
+    return award_names
 
 def rank_awards(awards):
     seen = {}
@@ -236,7 +255,6 @@ def rank_awards(awards):
         if most_freq_pair[0] not in updated_seen:
             updated_seen[most_freq_pair[0]] = most_freq_pair[1]
     # combine different namings of same award
-    
     for award1 in updated_seen:
         for award2 in updated_seen:
             if award2 != award1:
@@ -248,7 +266,6 @@ def rank_awards(awards):
                             updated_seen[award1][0].append(award2)
                             updated_seen[award1][1] = updated_seen[award1][1] + updated_seen[award2]
                         updated_seen[award2] = 0
-    
     # remove redundant awards    
     final_seen = {}
     for key in updated_seen:
