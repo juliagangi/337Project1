@@ -331,6 +331,14 @@ def rank_awards(awards):
                         if sorted(adjs1) == sorted(adjs2):
                             updated_seen[award1] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award1][1],updated_seen[award1][2],updated_seen[award1][3]+[award2]]
                             updated_seen[award2] = 0
+                    elif len(award1) < len(award2):
+                        if award2.__contains__(award1):
+                            if award2.index(award1) == 0:
+                                updated_seen[award1] = 0
+                    elif len(award2) < len(award1):
+                        if award1.__contains__(award2):
+                            if award1.index(award2) == 0:
+                                updated_seen[award2] = 0
     final_seen = {}
     for award in updated_seen:
         if updated_seen[award] != 0:
