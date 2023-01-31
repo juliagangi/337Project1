@@ -289,8 +289,8 @@ def rank_awards(awards):
         for list1 in awards:
             if item in list1:
                 list1[item] = seen[item]
-    updated_seen = {} # populate w most freq from each tweet (no duplicates)
-    for list2 in awards:
+    updated_seen = {} 
+    for list2 in awards: # populate w most freq from each tweet (no duplicates)
         if len(list2)==0:
             continue
         most_freq_pair = get_max_freq(list2)
@@ -298,27 +298,7 @@ def rank_awards(awards):
             updated_seen[most_freq_pair[0]] = updated_seen[most_freq_pair[0]] + most_freq_pair[1]
         if most_freq_pair[0] not in updated_seen:
             updated_seen[most_freq_pair[0]] = most_freq_pair[1]
-
-    '''
-    # combine different namings of same award
-    for award1 in updated_seen:
-        for award2 in updated_seen:
-            if award2 != award1:
-                if updated_seen[award1] != 0 and updated_seen[award2] != 0:
-                    if get_nominees(award1).sort() == get_nominees(award2).sort():
-                        if isinstance(updated_seen[award1],int):
-                            updated_seen[award1] = [[award2],updated_seen[award1] + updated_seen[award2]]
-                        else:
-                            updated_seen[award1][0].append(award2)
-                            updated_seen[award1][1] = updated_seen[award1][1] + updated_seen[award2]
-                        updated_seen[award2] = 0
-    most_frequent = []
-    for award in final_seen:
-        if final_seen[award][1] > 1:
-            most_frequent.append(award[0].append(award))
-    return most_frequent
-    '''
-    # compare parts of speech:
+    # create parts of speech lists for each award
     for award in updated_seen:
         nouns = []
         adjs = []
@@ -326,7 +306,7 @@ def rank_awards(awards):
         for word in award.split():
             if nlp(word)[0].pos_ == 'PUNCT':
                 continue
-            if word.__contains__('/'):
+            if word.__contains__('/'): # split terms that in form word1/word2
                 index = word.index('/') 
                 word1 = word[0:index]
                 word2 = word[index+1:len(word)]
@@ -345,7 +325,7 @@ def rank_awards(awards):
                 elif nlp(word2)[0].pos_ == 'VERB':
                     verbs.append(word2)
                 continue              
-            if nlp(word[len(word)-1])[0].pos_ == 'PUNCT':
+            if nlp(word[len(word)-1])[0].pos_ == 'PUNCT': # cut off punc at end of word
                 word = word[0:len(word)-1]
             if nlp(word)[0].pos_ == 'NOUN':
                 nouns.append(word)
@@ -354,7 +334,7 @@ def rank_awards(awards):
             elif nlp(word)[0].pos_ == 'VERB':
                 verbs.append(word)
         updated_seen[award] = [updated_seen[award],[nouns],[adjs],[verbs],[]]
-    for award1 in updated_seen:
+    for award1 in updated_seen: # combine different namings of same award
         for award2 in updated_seen:
             if award1 != award2:
                 if updated_seen[award1] != 0 and updated_seen[award2] != 0:
@@ -364,25 +344,69 @@ def rank_awards(awards):
                     adjs2 = updated_seen[award2][2]
                     verbs1 = updated_seen[award1][3]
                     verbs2 = updated_seen[award2][3]
-                    if sorted(nouns1) == sorted(nouns2):
+                    if sorted(nouns1) == sorted(nouns2): # check if all parts of speech lists match
                         if sorted(adjs1) == sorted(adjs2):
                             if sorted(verbs1) == sorted(verbs2):
                                 if updated_seen[award1][0] > updated_seen[award2][0]:
                                     updated_seen[award1] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award1][1],updated_seen[award1][2],updated_seen[award1][3],updated_seen[award1][4]+[award2]]
                                     updated_seen[award2] = 0
                                 else:
-                                    updated_seen[award2] = [updated_seen[award2][0]+updated_seen[award1][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
+                                    updated_seen[award2] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
                                     updated_seen[award1] = 0                                    
-                    elif len(award1) < len(award2):
-                        if award2.__contains__(award1):
+                    elif len(award1) < len(award2): # check if an award is start of another 
+                        if award2.__contains__(award1): # ONLY UPDATE FREQ or ADD AS ALT NAME?
                             if award2.index(award1) == 0:
-                                updated_seen[award1] = 0
-                    elif len(award2) < len(award1):
-                        if award1.__contains__(award2):
+                                if updated_seen[award1][0] > updated_seen[award2][0]:
+                                    updated_seen[award1] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award1][1],updated_seen[award1][2],updated_seen[award1][3],updated_seen[award1][4]+[award2]]
+                                    updated_seen[award2] = 0
+                                else:
+                                    updated_seen[award2] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
+                                    updated_seen[award1] = 0
+                    elif len(award2) < len(award1): # check if an award is start of another
+                        if award1.__contains__(award2): # ONLY UPDATE FREQ or ADD AS ALT NAME?
                             if award1.index(award2) == 0:
+                                if updated_seen[award1][0] > updated_seen[award2][0]:
+                                    updated_seen[award1] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award1][1],updated_seen[award1][2],updated_seen[award1][3],updated_seen[award1][4]+[award2]]
+                                    updated_seen[award2] = 0
+                                else:
+                                    updated_seen[award2] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
+                                    updated_seen[award1] = 0
+                    # check if nominees are same
+                    elif sorted(get_nominees(award1,the_movies)) == sorted(get_nominees(award2,the_movies)):
+                            if updated_seen[award1][0] > updated_seen[award2][0]:
+                                updated_seen[award1] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award1][1],updated_seen[award1][2],updated_seen[award1][3],updated_seen[award1][4]+[award2]]
                                 updated_seen[award2] = 0
+                            else:
+                                updated_seen[award2] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
+                                updated_seen[award1] = 0
+                    else: # check if nouns list is fully contained by other
+                        sortednouns1 = sorted(' '.join(nouns1))
+                        sortednouns2 = sorted(' '.join(nouns2))
+                        if len(nouns1) < len(nouns2):
+                            if sortednouns2.__contains__(sortednouns1):
+                                if updated_seen[award1][0] > updated_seen[award2][0]:
+                                    updated_seen[award1] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award1][1],updated_seen[award1][2],updated_seen[award1][3],updated_seen[award1][4]+[award2]]
+                                    updated_seen[award2] = 0
+                                else:
+                                    updated_seen[award2] = [updated_seen[award2][0]+updated_seen[award1][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
+                                    updated_seen[award1] = 0
+                        elif len(nouns1) > len(nouns2):
+                            if sortednouns1.__contains__(sortednouns2):
+                                if updated_seen[award1][0] > updated_seen[award2][0]:
+                                    updated_seen[award1] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award1][1],updated_seen[award1][2],updated_seen[award1][3],updated_seen[award1][4]+[award2]]
+                                    updated_seen[award2] = 0
+                                else:
+                                    updated_seen[award2] = [updated_seen[award2][0]+updated_seen[award1][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
+                                    updated_seen[award1] = 0
+    '''
+    most_frequent = []
+    for award in final_seen:
+        if final_seen[award][1] > 1:
+            most_frequent.append(award[0].append(award))
+    return most_frequent
+    '''
     final_seen = {}
-    for award in updated_seen: # remove redundant awards
+    for award in updated_seen: # remove awards that are now alternative names for other
         if updated_seen[award] != 0:
             final_seen[award] = [updated_seen[award][0],updated_seen[award][4]]
     most_frequent = {}
@@ -442,9 +466,6 @@ def get_nominees(award):
 def get_awards():
     awards = find_awards(data)
     print(rank_awards(awards))
-
-get_awards()
-
 
 actordict = {}
 with open('actors.csv') as csv_file:
@@ -594,3 +615,24 @@ def pos():
     print(nlp(string2)[0].pos_)    
 
 #pos()
+
+
+def test():
+    award1 = 'best supporting actor, motion picture'
+    award2 = 'best supporting actor, drama'
+    nom1 = sorted(get_nominees(award1,the_movies))
+    nom2 = get_nominees(award2,the_movies)
+    '''
+    print(nom1)
+    print(nom2)
+    award1 = 'best actor, comedy/musical'
+    award2 = 'best actor in a motion picture comedy/musical'
+    print(get_nominees(award1,the_movies))
+    print(get_nominees(award2,the_movies))
+    '''
+
+
+
+#test()
+
+get_awards()
