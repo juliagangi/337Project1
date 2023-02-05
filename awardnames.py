@@ -270,7 +270,8 @@ def find_awards(data):
                 break
     return award_names
 
-def rank_awards(awards):
+def rank_awards(data):
+    awards = find_awards(data)
     seen = {}
     for list in awards:
         for award in list:
@@ -588,10 +589,39 @@ def find_name_or_movie(input):
             if tweet.__contains__(input):
                 print(tweet)
 
-winnerMap = {}
 
+def compare_winners(votedict, vec):
+    winner = ""
+    curmax = 0
+    for element in votedict:
+        if votedict[element]>curmax:
+            curmax = votedict[element]
+            winner = element
+    for element in data:
+        tweet = element['text']
+        if tweet.split()[0] == 'RT':
+            continue
+        tweet = tweet.lower()
+        if tweet.__contains__(winner):
+            if tweet.__contains__("won") or tweet.__contains__("stole") or tweet.__contains__("beat") or tweet.__contains__("lost") or tweet.__contains__("wins") or tweet.__contains__("loses") or tweet.__contains__("should"):
+                for item in vec:
+                    if tweet.__contains__(item):
+                        if item in votedict:
+                            votedict[item]+=1
+                        else:
+                            votedict[item] = 1
+    return votedict
+
+def checkplus(some_award, a_tweet):
+    for part in some_award:
+        if not a_tweet.__contains__(part):
+            return False
+    return True
+
+winnerMap = {}
 def get_nominees(awards, movielist, tvshows):
     #award = award.lower()
+    dupes = duplicate_lastnames()
     vote_dict = {}
     for element in data:
         tweet = (element['text'])
@@ -600,11 +630,47 @@ def get_nominees(awards, movielist, tvshows):
         #if tweet[0]=="r" and tweet[1]=="t":
             #counter+=1
         for award in awards:
-            award = award.lower()
-            if tweet.__contains__(award):
+            counter+=1
+            if counter == len(awards):
+                if checkplus(award, tweet) == True:
+                    for person in persondict:
+                        namelist = persondict[person]
+                        if tweet.__contains__(namelist[0]):# or tweet.__contains__(namelist[1]):
+                            if person in vote_dict:
+                                vote_dict[person]+=1
+                            else:
+                                vote_dict[person]=1
+                        elif tweet.__contains__(namelist[1]) and namelist[1] not in dupes:# or tweet.__contains__(namelist[1]):
+                            if person in vote_dict:
+                                vote_dict[person]+=1
+                            else:
+                                vote_dict[person]=1
+                    for movie in movielist:
+                        movie = movie.lower()
+                        if tweet.__contains__(movie):
+                            if movie in vote_dict:
+                                vote_dict[movie]+=1
+                            else:
+                                vote_dict[movie]=1
+                    for show in tvshows:
+                        if tweet.__contains__(show):
+                            if show in vote_dict:
+                                vote_dict[show]+=1
+                            else:
+                                vote_dict[show]=1
+                else:
+                    pass
+                #award = award.lower()
+                #print(award)
+            elif tweet.__contains__(award):
                 for person in persondict:
                     namelist = persondict[person]
-                    if tweet.__contains__(namelist[0]) or tweet.__contains__(namelist[1]):
+                    if tweet.__contains__(namelist[0]):# or tweet.__contains__(namelist[1]):
+                        if person in vote_dict:
+                            vote_dict[person]+=1
+                        else:
+                            vote_dict[person]=1
+                    elif tweet.__contains__(namelist[1]) and namelist[1] not in dupes:# or tweet.__contains__(namelist[1]):
                         if person in vote_dict:
                             vote_dict[person]+=1
                         else:
@@ -623,6 +689,20 @@ def get_nominees(awards, movielist, tvshows):
                         else:
                             vote_dict[show]=1
                 break
+    the_vec = []
+    if award[0].__contains__("actor") or award[0].__contains__("actress") or award[0].__contains__("director") or award[0].__contains__("cecil"):
+        #print(award[0])
+        #print("HEREEE1")
+        the_vec = persondict
+    elif award[0].__contains__("series"):
+        #print(award[0])
+        #print("HEREEE2")
+        the_vec = the_shows
+    else:
+        #print(award[0])
+        #print("HEREEE3")
+        the_vec = the_movies
+    vote_dict = compare_winners(vote_dict, the_vec)
     first = 0
     second = 0
     third = 0
@@ -634,13 +714,6 @@ def get_nominees(awards, movielist, tvshows):
     nomthree = 'c'
     nomfour = 'd'
     nomfive = 'e'
-    the_vec = []
-    if award.__contains__("actor") or award.__contains__("actress") or award.__contains__("director") or award.__contains__("cecil"):
-        the_vec = persondict
-    elif award.__contains__("series"):
-        the_vec = the_shows
-    else:
-        the_vec = the_movies
     for index in vote_dict:
         if vote_dict[index]>first and index in the_vec:
             fifth = fourth
@@ -689,6 +762,9 @@ def get_nominees(awards, movielist, tvshows):
     if nomone == 'a':
         nominees.remove(nomone)
     winnerMap[awards[0]] = nomone
+    #print(awards[0])
+    #print(nominees)
+    #print(vote_dict)
     return nominees
 
 def duplicate_lastnames():
@@ -728,46 +804,132 @@ def get_hosts():
             host.append(k)
     return host
 
+def checkplus_end(some_award, a_tweet):
+    for part in some_award[len(some_award) - 1]:
+        if not a_tweet.__contains__(part):
+            return False
+    return True
+
+def get_keywords(data):
+    new_awards = []
+    awards_list = rank_awards(data)
+    for awards in awards_list:
+        element = awards[0]
+        if element.__contains__("/") or element.__contains__(",") or element.__contains__("-") or element.__contains__(":"):
+            counter=0
+            string = ""
+            while counter<len(element):
+                if element[counter] != "/" and element[counter] != "," and element[counter] != "-" and element[counter] != ":":
+                    string+=element[counter]
+                elif element[counter] == "," or element[counter]=="-" or element[counter]==":":
+                    pass
+                else:
+                    string+=" "
+                counter+=1
+            element = string
+        element = element.split()
+        vector = []
+        new_award_name = ""
+        counter = 0
+        for word in element:
+            if word == "director":
+                new_award_name = "director "
+                break
+            elif word=="screenplay":
+                new_award_name = "screenplay "
+                break
+            elif word == "animated":
+                new_award_name = "feature film "
+                break
+            elif word in keywords and not new_award_name.__contains__(word):
+                new_award_name+=word
+                new_award_name += " "
+            counter+=1
+        new_award_name = new_award_name[:-1]
+        awards.append(new_award_name)
+        new_awards.append(awards)
+    return new_awards
+
+def plus(data):
+    the_awards = get_keywords(data)
+    first = ""
+    second = ""
+    third = ""
+    for element in the_awards:
+        parsed = element[-1]
+        parsed = parsed.split()
+        counter=0
+        for word in parsed:
+            if counter<len(parsed)-1:
+                if word=="actor" or word=="actress" or word=="screenplay" or word=="picture":
+                    counter+=1
+                    parsed.insert(counter, "plus")
+                else:
+                    counter+=1
+        first = False
+        second = False
+        third = ""
+        one = ""
+        two = ""
+        for word in parsed:
+            if word=="plus":
+                if first == True:
+                    second = True
+                first = True
+            elif first==False:
+                one+=word
+                one+=" "
+            elif first == True and second == False and word != "plus":
+                two+=word
+                two+=" "
+            elif first==True and second==True:
+                third+=word
+                third+=" "
+        parts = []
+        if len(third)>1:
+            one = one[:-1]
+            two = two[:-1]
+            third = third[:-1]
+            parts = [one, two, third]
+        elif len(two)>1:
+            one = one[:-1]
+            two = two[:-1]
+            parts = [one, two]
+        else:
+            one = one[:-1]
+            parts = [one]
+        element[-1] = parts
+    return the_awards
+
 def get_presenters(awards):
     tweetarr = []
-    keywords = ['present']
     presenterMap = defaultdict(int)
     for element in data:
         tweet = element['text'].lower()
-        ind = 0
-        for award in awards:
-            if tweet.__contains__(award):
-                ind = 1
-        if tweet.__contains__(winnerMap[awards[0]].lower()) or ind:
-            for keyword in keywords:
-                if tweet.__contains__(keyword):
-                    if not tweet.__contains__("should") and not tweet.split()[0]==("rt"):
-                        #t = re.findall("^(.*?)present", tweet)
-                        #if t:
-                        #    tweetarr.append(t[0])
-                        tweetarr.append(tweet)
-                        break        
+        if checkplus_end(awards,tweet):
+            if tweet.__contains__("present"):
+                tweetarr.append(tweet)   
+        #print(len(tweetarr))
     for t in tweetarr:
         twt = re.findall("^(.*?)present", t)
-        pid = nlp(t)
-        for e in pid.ents:
-            if e.label_ == 'PERSON':
-                if e.text != winnerMap[awards[0]]:
-                    presenterMap[e.text] += 1
+        if twt:
+            pid = nlp(t)
+            for e in pid.ents:
+                if e.label_ == 'PERSON':
+                    if e.text != winnerMap[awards[0]].lower():
+                        presenterMap[e.text] += 1
     tweetarr = []
+        #print(presenterMap)
     presTup = (" ",0)
     for (k,v) in presenterMap.items():
         if v > presTup[1]:
             presTup = (k,v)
-    #print(presTup[0])
-    #tweetarr = []
     return presTup[0]
-    #return tweetarr
 
 
 awards = [['best supporting actor in a drama','best supporting actor, drama'], ['best supporting actor, motion picture','best supporting actor in a motion picture'], ['best supporting actress tv series, miniseries, or tv movie'], ['best actress in a mini-series/tv movie','best actress in a mini-series, tv movie'], ['best actor for tv drama','best tv drama actor', 'best actor in tv drama'], ['best original song award'], ['best actor in a miniseries/tv movie','best tv movie or miniseries actor'], ['best actress in a motion picture comedy or musical','best actress motion picture comedy or musical'], ['best supporting actor in a tv show, miniseries or tv movie award'], ['best supporting actress in a motion picture','best supporting actress motion picture', 'best supporting actress for motion picture'], ['best screenplay in a motion picture','golden globe awards for best female', 'best motion picture screenplay', 'best screenplay, motion picture', 'best screenplay - motion picture', 'best screenplay for a motion picture', 'best motion picture, comedy/musical'], ['best actor tv series - comedy or musical'], ['best actress, tv drama','best tv drama actress', 'best actress in a tv drama', 'best drama tv actress'], ['best actress in a tv series, drama','best actress in a tv series - drama'], ['best animated feature film'], ['best actress in a tv comedy or musical','best actress in a tv comedy/musical'], ['best actress in a comedy or musical series','best actress in a motion picture for drama'], ['best director for motion picture','best director for a motion picture', 'best director of a motion picture', 'best director - motion picture'], ['best tv comedy/musical','best tan by an actress', 'best look of the night'], ['best actor in a motion picture comedy/musical','best original song category, the golden globe', 'best actor in a motion picture, comedy/musical'], ['best actor, comedy/musical','best actor in comedy/musical', 'best actor, musical or comedy', 'best actor in comedy or musical'], ['best actress in a motion picture drama','best actress for motion picture- drama', 'best actress, motion picture/drama', 'best actress for a motion picture drama'], ['best actor in a motion picture drama','best actor, motion picture drama', 'best actor in motion picture drama'], ['best motion picture drama','best motion picture - drama', 'best motion picture in drama'], ['best actor, drama: golden globe for film']]
-
-
+#awards = plus()
+'''
 def combine_nominees(awards):
     returndict = {}
     for award in awards:
@@ -775,6 +937,7 @@ def combine_nominees(awards):
         nomarray = get_presenters(award)
         returndict[award[0]] = nomarray
     return returndict
+'''
 #print(combine_nominees(awards))
 
 #print(get_nominees(['best screenplay in a motion picture', 'golden globe awards for best female', 'best motion picture screenplay', 'best screenplay, motion picture', 'best screenplay - motion picture', 'best screenplay for a motion picture', 'best motion picture, comedy/musical'],the_movies,the_shows))
@@ -789,4 +952,5 @@ def combine_nominees(awards):
 #print(get_awards(data))
 
 #print(get_awards(data))
-print(build_json(data))
+#print(build_json(data))
+print(plus(data))
