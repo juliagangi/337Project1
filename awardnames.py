@@ -907,9 +907,11 @@ def get_presenters(awards):
     presenterMap = defaultdict(int)
     for element in data:
         tweet = element['text'].lower()
-        if checkplus_end(awards,tweet):
-            if tweet.__contains__("present"):
-                tweetarr.append(tweet)   
+        for aName in awards:
+            if tweet.__contains__(aName):
+                if tweet.__contains__("present"):
+                    tweetarr.append(tweet)   
+    print("presenter of ", award[0] ,":")
         #print(len(tweetarr))
     for t in tweetarr:
         twt = re.findall("^(.*?)present", t)
@@ -917,8 +919,8 @@ def get_presenters(awards):
             pid = nlp(t)
             for e in pid.ents:
                 if e.label_ == 'PERSON':
-                    if e.text != winnerMap[awards[0]].lower():
-                        presenterMap[e.text] += 1
+                    
+                    presenterMap[e.text] += 1
     tweetarr = []
         #print(presenterMap)
     presTup = (" ",0)
