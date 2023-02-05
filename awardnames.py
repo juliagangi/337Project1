@@ -941,4 +941,8 @@ def combine_nominees(awards):
 '''
 
 #print(build_json(data))
+<<<<<<< HEAD
 print(plus(data))
+=======
+print(plus(data))
+>>>>>>> 510a8a024a526eab60a766464d645c104e88f0ab
