@@ -13,6 +13,104 @@ nlp = spacy.load("en_core_web_sm")
 
 actordict = {}
 moviedict = {}
+keywords = ['supporting', 'actor', 'drama', 'motion', 'picture', 'actress', 'tv', 'series', 'miniseries', 'movie', 'original', 'song', 'comedy', 'musical', 'show', 'screenplay', 'animated', 'feature', 'film', 'director']
+
+def get_keywords(the_awards):
+    new_awards = []
+    for awards in the_awards:
+        element = awards[0]
+        if element.__contains__("/") or element.__contains__(",") or element.__contains__("-") or element.__contains__(":"):
+            counter=0
+            string = ""
+            while counter<len(element):
+                if element[counter] != "/" and element[counter] != "," and element[counter] != "-" and element[counter] != ":":
+                    string+=element[counter]
+                elif element[counter] == "," or element[counter]=="-" or element[counter]==":":
+                    pass
+                else:
+                    string+=" "
+                counter+=1
+            element = string
+        element = element.split()
+        vector = []
+        new_award_name = ""
+        counter = 0
+        for word in element:
+            if word == "director":
+                new_award_name = "director "
+                break
+            elif word=="screenplay":
+                new_award_name = "screenplay "
+                break
+            elif word == "animated":
+                new_award_name = "feature film "
+                break
+            elif word in keywords and not new_award_name.__contains__(word):
+                new_award_name+=word
+                new_award_name += " "
+            counter+=1
+        new_award_name = new_award_name[:-1]
+        awards.append(new_award_name)
+        new_awards.append(awards)
+    return new_awards
+
+def plus():
+    the_awards = get_keywords(awards)
+    first = ""
+    second = ""
+    third = ""
+    for element in the_awards:
+        parsed = element[-1]
+        parsed = parsed.split()
+        counter=0
+        for word in parsed:
+            if counter<len(parsed)-1:
+                if word=="actor" or word=="actress" or word=="screenplay" or word=="picture":
+                    counter+=1
+                    parsed.insert(counter, "plus")
+                else:
+                    counter+=1
+        first = False
+        second = False
+        third = ""
+        one = ""
+        two = ""
+        for word in parsed:
+            if word=="plus":
+                if first == True:
+                    second = True
+                first = True
+            elif first==False:
+                one+=word
+                one+=" "
+            elif first == True and second == False and word != "plus":
+                two+=word
+                two+=" "
+            elif first==True and second==True:
+                third+=word
+                third+=" "
+        parts = []
+        if len(third)>1:
+            one = one[:-1]
+            two = two[:-1]
+            third = third[:-1]
+            parts = [one, two, third]
+        elif len(two)>1:
+            one = one[:-1]
+            two = two[:-1]
+            parts = [one, two]
+        else:
+            one = one[:-1]
+            parts = [one]
+        element[-1] = parts
+    return the_awards
+
+
+def checkplus(some_award, a_tweet):
+    for part in some_award:
+        if not a_tweet.__contains__(part):
+            return False
+    return True
 with open('newfile.csv') as csv_file:   
     counter=1
     for row in csv_file:
@@ -71,7 +169,7 @@ def get_people():
                     lastvec[0] = "a;lskdjfa;lsdkjf"
                 relevant_actors[actor] = lastvec
     return relevant_actors
-
+nameMap = {'best supporting actor in a drama': [51, ['best supporting actor, drama']], 'best supporting actor, motion picture': [2313, ['best supporting actor in a motion picture']], 'best supporting actress tv series, miniseries, or tv movie': [425, []], 'best actress in a mini-series/tv movie': [401, ['best actress in a mini-series, tv movie']], 'best actor for tv drama': [63, ['best tv drama actor', 'best actor in tv drama']], 'best original song award': [145, []], 'best actor in a miniseries/tv movie': [226, ['best tv movie or miniseries actor']], 'best actress in a motion picture comedy or musical': [29, ['best actress motion picture comedy or musical']], 'best supporting actor in a tv show, miniseries or tv movie award': [50, []], 'best supporting actress in a motion picture': [108, ['best supporting actress motion picture', 'best supporting actress for motion picture']], 'best screenplay in a motion picture': [348, ['golden globe awards for best female', 'best motion picture screenplay', 'best screenplay, motion picture', 'best screenplay - motion picture', 'best screenplay for a motion picture', 'best motion picture, comedy/musical']], 'best actor tv series - comedy or musical': [196, []], 'best actress, tv drama': [35, ['best tv drama actress', 'best actress in a tv drama', 'best drama tv actress']], 'best actress in a tv series, drama': [50, ['best actress in a tv series - drama']], 'best animated feature film': [40, []], 'best actress in a tv comedy or musical': [809, ['best actress in a tv comedy/musical']], 'best actress in a comedy or musical series': [26, ['best actress in a motion picture for drama']], 'best director for motion picture': [386, ['best director for a motion picture', 'best director of a motion picture', 'best director - motion picture']], 'best tv comedy/musical': [31, ['best tan by an actress', 'best look of the night']], 'best actor in a motion picture comedy/musical': [74, ['best original song category, the golden globe', 'best actor in a motion picture, comedy/musical']], 'best actor, comedy/musical': [36, ['best actor in comedy/musical', 'best actor, musical or comedy', 'best actor in comedy or musical']], 'best actress in a motion picture drama': [55, ['best actress for motion picture- drama', 'best actress, motion picture/drama', 'best actress for a motion picture drama']], 'best actor in a motion picture drama': [51, ['best actor, motion picture drama', 'best actor in motion picture drama']], 'best motion picture drama': [7929, ['best motion picture - drama', 'best motion picture in drama']], 'best actor, drama: golden globe for film': [68, []]}
 def get_movies():
     relevant_tweets = []
     relevant_movies = {}
@@ -225,7 +323,11 @@ def nominees_given_awards(awardslist, movielist, tvshows):
         vote_dict = {}
         winnerMap[award] = nomone
     return
-
+def checkplus_end(some_award, a_tweet):
+    for part in some_award[len(some_award) - 1]:
+        if not a_tweet.__contains__(part):
+            return False
+    return True
 
 def host_array():
     tweetarr = []
@@ -256,43 +358,40 @@ def getHosts():
             host.append(k)
 def present_array_second():
     tweetarr = []
-    keywords = ['present']
-    for award in the_awards:
+    for award in awards:
         presenterMap = defaultdict(int)
         for element in data:
             tweet = element['text'].lower()
-            if tweet.__contains__(winnerMap[award.lower()].lower()) or tweet.__contains__(award.lower()):
-                for keyword in keywords:
-                    if tweet.__contains__(keyword):
-                        if not tweet.__contains__("should") and not tweet.__contains__("rt"):
-                            #t = re.findall("^(.*?)present", tweet)
-                            #if t:
-                            #    tweetarr.append(t[0])
-                            tweetarr.append(tweet)
-                            break
-        print("presenter of ", award ,":")
-        
+            if checkplus_end(award,tweet):
+                if tweet.__contains__("present"):
+                    tweetarr.append(tweet)   
+        print("presenter of ", award[0] ,":")
+        #print(len(tweetarr))
         for t in tweetarr:
             twt = re.findall("^(.*?)present", t)
-            pid = nlp(t)
-            for e in pid.ents:
-                if e.label_ == 'PERSON':
-                    if e.text != winnerMap[award.lower()]:
+            if twt:
+                pid = nlp(t)
+                for e in pid.ents:
+                    if e.label_ == 'PERSON':
                         presenterMap[e.text] += 1
         tweetarr = []
+        #print(presenterMap)
         presTup = (" ",0)
         for (k,v) in presenterMap.items():
             if v > presTup[1]:
                presTup = (k,v)
         print(presTup[0])
+        
         tweetarr = []
 
     return tweetarr
 
+awards = [['best supporting actor in a drama','best supporting actor, drama'], ['best supporting actor, motion picture','best supporting actor in a motion picture'], ['best supporting actress tv series, miniseries, or tv movie'], ['best actress in a mini-series/tv movie','best actress in a mini-series, tv movie'], ['best actor for tv drama','best tv drama actor', 'best actor in tv drama'], ['best original song award'], ['best actor in a miniseries/tv movie','best tv movie or miniseries actor'], ['best actress in a motion picture comedy or musical','best actress motion picture comedy or musical'], ['best supporting actor in a tv show, miniseries or tv movie award'], ['best supporting actress in a motion picture','best supporting actress motion picture', 'best supporting actress for motion picture'], ['best screenplay in a motion picture','golden globe awards for best female', 'best motion picture screenplay', 'best screenplay, motion picture', 'best screenplay - motion picture', 'best screenplay for a motion picture', 'best motion picture, comedy/musical'], ['best actor tv series - comedy or musical'], ['best actress, tv drama','best tv drama actress', 'best actress in a tv drama', 'best drama tv actress'], ['best actress in a tv series, drama','best actress in a tv series - drama'], ['best animated feature film'], ['best actress in a tv comedy or musical','best actress in a tv comedy/musical'], ['best actress in a comedy or musical series','best actress in a motion picture for drama'], ['best director for motion picture','best director for a motion picture', 'best director of a motion picture', 'best director - motion picture'], ['best tv comedy/musical','best tan by an actress', 'best look of the night'], ['best actor in a motion picture comedy/musical','best original song category, the golden globe', 'best actor in a motion picture, comedy/musical'], ['best actor, comedy/musical','best actor in comedy/musical', 'best actor, musical or comedy', 'best actor in comedy or musical'], ['best actress in a motion picture drama','best actress for motion picture- drama', 'best actress, motion picture/drama', 'best actress for a motion picture drama'], ['best actor in a motion picture drama','best actor, motion picture drama', 'best actor in motion picture drama'], ['best motion picture drama','best motion picture - drama', 'best motion picture in drama'], ['best actor, drama: golden globe for film']]
+awards = plus()
 
 
 nominees_given_awards(the_awards, the_movies, the_shows)
-print(winnerMap)
+#print(winnerMap)
 getHosts() 
 print(present_array_second())
 #find_name_or_movie('argo')
