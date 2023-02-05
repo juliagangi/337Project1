@@ -15,95 +15,7 @@ actordict = {}
 moviedict = {}
 keywords = ['supporting', 'actor', 'drama', 'motion', 'picture', 'actress', 'tv', 'series', 'miniseries', 'movie', 'original', 'song', 'comedy', 'musical', 'show', 'screenplay', 'animated', 'feature', 'film', 'director']
 
-def get_keywords(the_awards):
-    new_awards = []
-    for awards in the_awards:
-        element = awards[0]
-        if element.__contains__("/") or element.__contains__(",") or element.__contains__("-") or element.__contains__(":"):
-            counter=0
-            string = ""
-            while counter<len(element):
-                if element[counter] != "/" and element[counter] != "," and element[counter] != "-" and element[counter] != ":":
-                    string+=element[counter]
-                elif element[counter] == "," or element[counter]=="-" or element[counter]==":":
-                    pass
-                else:
-                    string+=" "
-                counter+=1
-            element = string
-        element = element.split()
-        vector = []
-        new_award_name = ""
-        counter = 0
-        for word in element:
-            if word == "director":
-                new_award_name = "director "
-                break
-            elif word=="screenplay":
-                new_award_name = "screenplay "
-                break
-            elif word == "animated":
-                new_award_name = "feature film "
-                break
-            elif word in keywords and not new_award_name.__contains__(word):
-                new_award_name+=word
-                new_award_name += " "
-            counter+=1
-        new_award_name = new_award_name[:-1]
-        awards.append(new_award_name)
-        new_awards.append(awards)
-    return new_awards
 
-def plus():
-    the_awards = get_keywords(awards)
-    first = ""
-    second = ""
-    third = ""
-    for element in the_awards:
-        parsed = element[-1]
-        parsed = parsed.split()
-        counter=0
-        for word in parsed:
-            if counter<len(parsed)-1:
-                if word=="actor" or word=="actress" or word=="screenplay" or word=="picture":
-                    counter+=1
-                    parsed.insert(counter, "plus")
-                else:
-                    counter+=1
-        first = False
-        second = False
-        third = ""
-        one = ""
-        two = ""
-        for word in parsed:
-            if word=="plus":
-                if first == True:
-                    second = True
-                first = True
-            elif first==False:
-                one+=word
-                one+=" "
-            elif first == True and second == False and word != "plus":
-                two+=word
-                two+=" "
-            elif first==True and second==True:
-                third+=word
-                third+=" "
-        parts = []
-        if len(third)>1:
-            one = one[:-1]
-            two = two[:-1]
-            third = third[:-1]
-            parts = [one, two, third]
-        elif len(two)>1:
-            one = one[:-1]
-            two = two[:-1]
-            parts = [one, two]
-        else:
-            one = one[:-1]
-            parts = [one]
-        element[-1] = parts
-    return the_awards
 
 
 def checkplus(some_award, a_tweet):
@@ -323,11 +235,7 @@ def nominees_given_awards(awardslist, movielist, tvshows):
         vote_dict = {}
         winnerMap[award] = nomone
     return
-def checkplus_end(some_award, a_tweet):
-    for part in some_award[len(some_award) - 1]:
-        if not a_tweet.__contains__(part):
-            return False
-    return True
+
 
 def host_array():
     tweetarr = []
@@ -356,35 +264,129 @@ def getHosts():
             print("The host is: ")
             print(k)
             host.append(k)
-def present_array_second():
-    tweetarr = []
-    for award in awards:
-        presenterMap = defaultdict(int)
-        for element in data:
-            tweet = element['text'].lower()
-            if checkplus_end(award,tweet):
-                if tweet.__contains__("present"):
-                    tweetarr.append(tweet)   
-        print("presenter of ", award[0] ,":")
-        #print(len(tweetarr))
-        for t in tweetarr:
-            twt = re.findall("^(.*?)present", t)
-            if twt:
-                pid = nlp(t)
-                for e in pid.ents:
-                    if e.label_ == 'PERSON':
-                        presenterMap[e.text] += 1
-        tweetarr = []
-        #print(presenterMap)
-        presTup = (" ",0)
-        for (k,v) in presenterMap.items():
-            if v > presTup[1]:
-               presTup = (k,v)
-        print(presTup[0])
-        
-        tweetarr = []
 
-    return tweetarr
+
+
+def checkplus_end(some_award, a_tweet):
+    for part in some_award[len(some_award) - 1]:
+        if not a_tweet.__contains__(part):
+            return False
+    return True
+
+def get_keywords(the_awards):
+    new_awards = []
+    for awards in the_awards:
+        element = awards[0]
+        if element.__contains__("/") or element.__contains__(",") or element.__contains__("-") or element.__contains__(":"):
+            counter=0
+            string = ""
+            while counter<len(element):
+                if element[counter] != "/" and element[counter] != "," and element[counter] != "-" and element[counter] != ":":
+                    string+=element[counter]
+                elif element[counter] == "," or element[counter]=="-" or element[counter]==":":
+                    pass
+                else:
+                    string+=" "
+                counter+=1
+            element = string
+        element = element.split()
+        vector = []
+        new_award_name = ""
+        counter = 0
+        for word in element:
+            if word == "director":
+                new_award_name = "director "
+                break
+            elif word=="screenplay":
+                new_award_name = "screenplay "
+                break
+            elif word == "animated":
+                new_award_name = "feature film "
+                break
+            elif word in keywords and not new_award_name.__contains__(word):
+                new_award_name+=word
+                new_award_name += " "
+            counter+=1
+        new_award_name = new_award_name[:-1]
+        awards.append(new_award_name)
+        new_awards.append(awards)
+    return new_awards
+
+def plus():
+    the_awards = get_keywords(awards)
+    first = ""
+    second = ""
+    third = ""
+    for element in the_awards:
+        parsed = element[-1]
+        parsed = parsed.split()
+        counter=0
+        for word in parsed:
+            if counter<len(parsed)-1:
+                if word=="actor" or word=="actress" or word=="screenplay" or word=="picture":
+                    counter+=1
+                    parsed.insert(counter, "plus")
+                else:
+                    counter+=1
+        first = False
+        second = False
+        third = ""
+        one = ""
+        two = ""
+        for word in parsed:
+            if word=="plus":
+                if first == True:
+                    second = True
+                first = True
+            elif first==False:
+                one+=word
+                one+=" "
+            elif first == True and second == False and word != "plus":
+                two+=word
+                two+=" "
+            elif first==True and second==True:
+                third+=word
+                third+=" "
+        parts = []
+        if len(third)>1:
+            one = one[:-1]
+            two = two[:-1]
+            third = third[:-1]
+            parts = [one, two, third]
+        elif len(two)>1:
+            one = one[:-1]
+            two = two[:-1]
+            parts = [one, two]
+        else:
+            one = one[:-1]
+            parts = [one]
+        element[-1] = parts
+    return the_awards
+def get_presenters(awards):
+    tweetarr = []
+    presenterMap = defaultdict(int)
+    for element in data:
+        tweet = element['text'].lower()
+        if checkplus_end(awards,tweet):
+            if tweet.__contains__("present"):
+                tweetarr.append(tweet)   
+    print("presenter of ", award[0] ,":")
+        #print(len(tweetarr))
+    for t in tweetarr:
+        twt = re.findall("^(.*?)present", t)
+        if twt:
+            pid = nlp(t)
+            for e in pid.ents:
+                if e.label_ == 'PERSON':
+                    if e.text != winnerMap[awards[0]].lower():
+                        presenterMap[e.text] += 1
+    tweetarr = []
+        #print(presenterMap)
+    presTup = (" ",0)
+    for (k,v) in presenterMap.items():
+        if v > presTup[1]:
+            presTup = (k,v)
+    return presTup[0]
 
 awards = [['best supporting actor in a drama','best supporting actor, drama'], ['best supporting actor, motion picture','best supporting actor in a motion picture'], ['best supporting actress tv series, miniseries, or tv movie'], ['best actress in a mini-series/tv movie','best actress in a mini-series, tv movie'], ['best actor for tv drama','best tv drama actor', 'best actor in tv drama'], ['best original song award'], ['best actor in a miniseries/tv movie','best tv movie or miniseries actor'], ['best actress in a motion picture comedy or musical','best actress motion picture comedy or musical'], ['best supporting actor in a tv show, miniseries or tv movie award'], ['best supporting actress in a motion picture','best supporting actress motion picture', 'best supporting actress for motion picture'], ['best screenplay in a motion picture','golden globe awards for best female', 'best motion picture screenplay', 'best screenplay, motion picture', 'best screenplay - motion picture', 'best screenplay for a motion picture', 'best motion picture, comedy/musical'], ['best actor tv series - comedy or musical'], ['best actress, tv drama','best tv drama actress', 'best actress in a tv drama', 'best drama tv actress'], ['best actress in a tv series, drama','best actress in a tv series - drama'], ['best animated feature film'], ['best actress in a tv comedy or musical','best actress in a tv comedy/musical'], ['best actress in a comedy or musical series','best actress in a motion picture for drama'], ['best director for motion picture','best director for a motion picture', 'best director of a motion picture', 'best director - motion picture'], ['best tv comedy/musical','best tan by an actress', 'best look of the night'], ['best actor in a motion picture comedy/musical','best original song category, the golden globe', 'best actor in a motion picture, comedy/musical'], ['best actor, comedy/musical','best actor in comedy/musical', 'best actor, musical or comedy', 'best actor in comedy or musical'], ['best actress in a motion picture drama','best actress for motion picture- drama', 'best actress, motion picture/drama', 'best actress for a motion picture drama'], ['best actor in a motion picture drama','best actor, motion picture drama', 'best actor in motion picture drama'], ['best motion picture drama','best motion picture - drama', 'best motion picture in drama'], ['best actor, drama: golden globe for film']]
 awards = plus()
@@ -393,7 +395,8 @@ awards = plus()
 nominees_given_awards(the_awards, the_movies, the_shows)
 #print(winnerMap)
 getHosts() 
-print(present_array_second())
+for award in awards:
+    print(get_presenters(award))
 #find_name_or_movie('argo')
 #find_name_or_movie('rust and bone')
 #find_name_or_movie('a royal affair')
