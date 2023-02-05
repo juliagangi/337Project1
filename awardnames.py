@@ -612,6 +612,8 @@ def compare_winners(votedict, vec):
                             votedict[item] = 1
     return votedict
 
+keywords = ['supporting', 'actor', 'drama', 'motion', 'picture', 'actress', 'tv', 'series', 'miniseries', 'movie', 'original', 'song', 'comedy', 'musical', 'show', 'screenplay', 'animated', 'feature', 'film', 'director']
+
 def checkplus(some_award, a_tweet):
     for part in some_award:
         if not a_tweet.__contains__(part):
@@ -787,7 +789,6 @@ def host_array():
                 if not tweet.__contains__("should"):
                     tweetarr.append(tweet)
                     break
-    
     return tweetarr
 
 def get_hosts():
@@ -812,8 +813,8 @@ def checkplus_end(some_award, a_tweet):
 
 def get_keywords(data):
     new_awards = []
-    awards_list = rank_awards(data)
-    for awards in awards_list:
+    #awards_list = rank_awards(data)
+    for awards in array_awards:
         element = awards[0]
         if element.__contains__("/") or element.__contains__(",") or element.__contains__("-") or element.__contains__(":"):
             counter=0
@@ -851,11 +852,11 @@ def get_keywords(data):
     return new_awards
 
 def plus(data):
-    the_awards = get_keywords(data)
+    my_awards = get_keywords(data)
     first = ""
     second = ""
     third = ""
-    for element in the_awards:
+    for element in my_awards:
         parsed = element[-1]
         parsed = parsed.split()
         counter=0
@@ -899,7 +900,7 @@ def plus(data):
             one = one[:-1]
             parts = [one]
         element[-1] = parts
-    return the_awards
+    return my_awards
 
 def get_presenters(awards):
     tweetarr = []
@@ -927,7 +928,7 @@ def get_presenters(awards):
     return presTup[0]
 
 
-awards = [['best supporting actor in a drama','best supporting actor, drama'], ['best supporting actor, motion picture','best supporting actor in a motion picture'], ['best supporting actress tv series, miniseries, or tv movie'], ['best actress in a mini-series/tv movie','best actress in a mini-series, tv movie'], ['best actor for tv drama','best tv drama actor', 'best actor in tv drama'], ['best original song award'], ['best actor in a miniseries/tv movie','best tv movie or miniseries actor'], ['best actress in a motion picture comedy or musical','best actress motion picture comedy or musical'], ['best supporting actor in a tv show, miniseries or tv movie award'], ['best supporting actress in a motion picture','best supporting actress motion picture', 'best supporting actress for motion picture'], ['best screenplay in a motion picture','golden globe awards for best female', 'best motion picture screenplay', 'best screenplay, motion picture', 'best screenplay - motion picture', 'best screenplay for a motion picture', 'best motion picture, comedy/musical'], ['best actor tv series - comedy or musical'], ['best actress, tv drama','best tv drama actress', 'best actress in a tv drama', 'best drama tv actress'], ['best actress in a tv series, drama','best actress in a tv series - drama'], ['best animated feature film'], ['best actress in a tv comedy or musical','best actress in a tv comedy/musical'], ['best actress in a comedy or musical series','best actress in a motion picture for drama'], ['best director for motion picture','best director for a motion picture', 'best director of a motion picture', 'best director - motion picture'], ['best tv comedy/musical','best tan by an actress', 'best look of the night'], ['best actor in a motion picture comedy/musical','best original song category, the golden globe', 'best actor in a motion picture, comedy/musical'], ['best actor, comedy/musical','best actor in comedy/musical', 'best actor, musical or comedy', 'best actor in comedy or musical'], ['best actress in a motion picture drama','best actress for motion picture- drama', 'best actress, motion picture/drama', 'best actress for a motion picture drama'], ['best actor in a motion picture drama','best actor, motion picture drama', 'best actor in motion picture drama'], ['best motion picture drama','best motion picture - drama', 'best motion picture in drama'], ['best actor, drama: golden globe for film']]
+array_awards = [['best supporting actor in a drama','best supporting actor, drama'], ['best supporting actor, motion picture','best supporting actor in a motion picture'], ['best supporting actress tv series, miniseries, or tv movie'], ['best actress in a mini-series/tv movie','best actress in a mini-series, tv movie'], ['best actor for tv drama','best tv drama actor', 'best actor in tv drama'], ['best original song award'], ['best actor in a miniseries/tv movie','best tv movie or miniseries actor'], ['best actress in a motion picture comedy or musical','best actress motion picture comedy or musical'], ['best supporting actor in a tv show, miniseries or tv movie award'], ['best supporting actress in a motion picture','best supporting actress motion picture', 'best supporting actress for motion picture'], ['best screenplay in a motion picture','golden globe awards for best female', 'best motion picture screenplay', 'best screenplay, motion picture', 'best screenplay - motion picture', 'best screenplay for a motion picture', 'best motion picture, comedy/musical'], ['best actor tv series - comedy or musical'], ['best actress, tv drama','best tv drama actress', 'best actress in a tv drama', 'best drama tv actress'], ['best actress in a tv series, drama','best actress in a tv series - drama'], ['best animated feature film'], ['best actress in a tv comedy or musical','best actress in a tv comedy/musical'], ['best actress in a comedy or musical series','best actress in a motion picture for drama'], ['best director for motion picture','best director for a motion picture', 'best director of a motion picture', 'best director - motion picture'], ['best tv comedy/musical','best tan by an actress', 'best look of the night'], ['best actor in a motion picture comedy/musical','best original song category, the golden globe', 'best actor in a motion picture, comedy/musical'], ['best actor, comedy/musical','best actor in comedy/musical', 'best actor, musical or comedy', 'best actor in comedy or musical'], ['best actress in a motion picture drama','best actress for motion picture- drama', 'best actress, motion picture/drama', 'best actress for a motion picture drama'], ['best actor in a motion picture drama','best actor, motion picture drama', 'best actor in motion picture drama'], ['best motion picture drama','best motion picture - drama', 'best motion picture in drama'], ['best actor, drama: golden globe for film']]
 #awards = plus()
 '''
 def combine_nominees(awards):
@@ -938,19 +939,6 @@ def combine_nominees(awards):
         returndict[award[0]] = nomarray
     return returndict
 '''
-#print(combine_nominees(awards))
 
-#print(get_nominees(['best screenplay in a motion picture', 'golden globe awards for best female', 'best motion picture screenplay', 'best screenplay, motion picture', 'best screenplay - motion picture', 'best screenplay for a motion picture', 'best motion picture, comedy/musical'],the_movies,the_shows))
-#print(get_nominees(['best actress in a motion picture drama','best actress for motion picture- drama', 'best actress, motion picture/drama', 'best actress for a motion picture drama'],the_movies,the_shows))
-
-#myawards = ['best director for motion picture','best director for a motion picture', 'best director of a motion picture', 'best director - motion picture']
-#print(get_nominees(myawards,the_movies,the_shows))
-#print(get_presenters(myawards))
-#print(get_presenters(myawards))
-#print(winnerMap)
-
-#print(get_awards(data))
-
-#print(get_awards(data))
 #print(build_json(data))
 print(plus(data))
