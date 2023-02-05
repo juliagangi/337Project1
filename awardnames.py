@@ -16,25 +16,29 @@ def build_json(data):
     return_dict = {}
     award_dict = {}
     return_dict["hosts"] = get_hosts()
-    return_dict["award data"] = award_dict
     award_names = get_awards(data)
     for award in award_names:
         curr_dict = {}
-        curr_dict["nominees:"] = get_nominees(award,the_movies,the_shows)
+        nominees = get_nominees(award,the_movies,the_shows)
+        curr_dict["nominees:"] = nominees
         curr_dict["presenters:"] = get_presenters(award)
-        curr_dict["winner:"] = get_nominees(award,the_movies,the_shows)[0]
-        award_dict[award] = curr_dict
+        curr_dict["winner:"] = nominees[0]
+        award_dict[award[0]] = curr_dict
+    return_dict["award data"] = award_dict
     return return_dict
 
 
 def build_human_readable(data):
     hosts = ', '.join(get_hosts())
     print('Host: '+hosts+'\n')
-    for award in get_awards(data):
-        nominees = ', '.join(get_nominees(award,the_movies,the_shows))
+    award_names = get_awards(data)
+    for award in award_names:
+        nominees = (get_nominees(award,the_movies,the_shows))
+        nominees = ', '.join(nominees)
         presenters = ', '.join(get_presenters(award))
         winner = nominees[0]
-        print('Award: '+award+'')
+        this_award = award[0]
+        print('Award: '+this_award+'')
         print('Nominees: '+nominees+'')
         print('Presenters: '+presenters+'')
         print('Winner: '+winner+'\n')
@@ -102,7 +106,7 @@ def best_dressed(data):
 
 def worst_dressed(data):
     seen = {}
-    forbidden_punct = [',','"','.','!','!','@','#','=',':']
+    forbidden_punct = [',','"','.','!','@','#','=',':']
     for element in data:
         tweet = element['text']
         if tweet.split()[0] == 'RT':
@@ -346,16 +350,37 @@ def rank_awards(awards):
                                 else:
                                     updated_seen[award2] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
                                     updated_seen[award1] = 0 
-                    elif len(award1) < len(award2): # check if an award is start of another 
-                        if award2.__contains__(award1):
+                    else:
+                        if len(award1) < len(award2) and award2.__contains__(award1): # check if an award is start of another 
                             if award2.index(award1) == 0:
                                 updated_seen[award2][0] = updated_seen[award1][0]+updated_seen[award2][0]
                                 updated_seen[award1] = 0
-                    elif len(award2) < len(award1): # check if an award is start of another
-                        if award1.__contains__(award2):
+                        elif len(award2) < len(award1) and award1.__contains__(award2): # check if an award is start of another
                             if award1.index(award2) == 0:
                                 updated_seen[award1][0] = updated_seen[award1][0]+updated_seen[award2][0]
                                 updated_seen[award2] = 0
+                        '''
+                        else: # check if nouns list is fully contained by other
+                            sortednouns1 = ' '.join(sorted(nouns1))
+                            sortednouns2 = ' '.join(sorted(nouns2))
+                            #if award1 == 'best actor in a motion picture comedy/musical' and award2 == 'best actor, comedy/musical':
+                            #    print("in else")
+                            #    print(sortednouns1)
+                            #    print(sortednouns2)
+                            #if award1 == 'best actress, tv drama' and award2 == 'best actress in a tv series, drama':
+                            #    print("in else2")
+                            #    print(sortednouns1)
+                            #    print(sortednouns2)
+                            if len(nouns1) < len(nouns2):
+                                if sortednouns2.__contains__(sortednouns1):
+                                    updated_seen[award2] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
+                                    updated_seen[award1] = 0
+                            elif len(nouns1) > len(nouns2):
+                                if sortednouns1.__contains__(sortednouns2):
+                                    updated_seen[award1] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award1][1],updated_seen[award1][2],updated_seen[award1][3],updated_seen[award1][4]+[award2]]
+                                    updated_seen[award2] = 0
+                        # check if nominees are same
+                        
                     elif sorted(get_nominees(award1,the_movies,the_shows)) == sorted(get_nominees(award2,the_movies,the_shows)):
                         if updated_seen[award1][0] > updated_seen[award2][0]:
                             updated_seen[award1] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award1][1],updated_seen[award1][2],updated_seen[award1][3],updated_seen[award1][4]+[award2]]
@@ -363,20 +388,10 @@ def rank_awards(awards):
                         else:
                             updated_seen[award2] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
                             updated_seen[award1] = 0  
-                        '''
-                    else: # check if nouns list is fully contained by other
-                        sortednouns1 = sorted(' '.join(nouns1))
-                        sortednouns2 = sorted(' '.join(nouns2))
-                        if len(nouns1) < len(nouns2):
-                            if sortednouns2.__contains__(sortednouns1):
-                                updated_seen[award2] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
-                                updated_seen[award1] = 0
-                        elif len(nouns1) > len(nouns2):
-                            if sortednouns1.__contains__(sortednouns2):
-                                updated_seen[award1] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award1][1],updated_seen[award1][2],updated_seen[award1][3],updated_seen[award1][4]+[award2]]
-                                updated_seen[award2] = 0
-                        # check if nominees are same
-                             
+                    else:
+                        continue
+                    '''    
+    '''                         
     most_frequent = []
     for award in final_seen:
         if final_seen[award][1] > 1:
@@ -450,7 +465,7 @@ def get_max_freq(dict):
 
 def get_awards(data):
     awards = find_awards(data)
-    print(rank_awards(awards))
+    return rank_awards(awards)
 
 
 
@@ -773,5 +788,5 @@ def combine_nominees(awards):
 
 #print(get_awards(data))
 
-
+#print(get_awards(data))
 print(build_json(data))
