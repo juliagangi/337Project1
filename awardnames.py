@@ -20,7 +20,6 @@ def build_json(data):
     award_names = get_awards(data)
     counter = 0
     for award in award_names:
-        #print(award)
         curr_dict = {}
         nominees = get_nominees(award,the_movies,the_shows)
         curr_dict["nominees:"] = nominees
@@ -59,9 +58,8 @@ def get_awards(data):
     final_awards = plus(new_awards)
     return final_awards
 
-keywords = []
-
 def the_keywords(awards):
+    keywords = []
     for award in awards:
         award = award[0]
         award = award.split()
@@ -71,7 +69,6 @@ def the_keywords(awards):
     for word in keywords:
         if word.__contains__("-") or word.__contains__("/") or word.__contains__(",") or word.__contains__(":"):
             keywords.remove(word)
-    #print(keywords)
     return keywords
 
 
@@ -500,60 +497,13 @@ def rank_awards(awards):
                             if award1.index(award2) == 0:
                                 updated_seen[award1][0] = updated_seen[award1][0]+updated_seen[award2][0]
                                 updated_seen[award2] = 0
-                        '''
-                        else: # check if nouns list is fully contained by other
-                            sortednouns1 = ' '.join(sorted(nouns1))
-                            sortednouns2 = ' '.join(sorted(nouns2))
-                            #if award1 == 'best actor in a motion picture comedy/musical' and award2 == 'best actor, comedy/musical':
-                            #    print("in else")
-                            #    print(sortednouns1)
-                            #    print(sortednouns2)
-                            #if award1 == 'best actress, tv drama' and award2 == 'best actress in a tv series, drama':
-                            #    print("in else2")
-                            #    print(sortednouns1)
-                            #    print(sortednouns2)
-                            if len(nouns1) < len(nouns2):
-                                if sortednouns2.__contains__(sortednouns1):
-                                    updated_seen[award2] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
-                                    updated_seen[award1] = 0
-                            elif len(nouns1) > len(nouns2):
-                                if sortednouns1.__contains__(sortednouns2):
-                                    updated_seen[award1] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award1][1],updated_seen[award1][2],updated_seen[award1][3],updated_seen[award1][4]+[award2]]
-                                    updated_seen[award2] = 0
-                        # check if nominees are same
-                        
-                    elif sorted(get_nominees(award1,the_movies,the_shows)) == sorted(get_nominees(award2,the_movies,the_shows)):
-                        if updated_seen[award1][0] > updated_seen[award2][0]:
-                            updated_seen[award1] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award1][1],updated_seen[award1][2],updated_seen[award1][3],updated_seen[award1][4]+[award2]]
-                            updated_seen[award2] = 0
-                        else:
-                            updated_seen[award2] = [updated_seen[award1][0]+updated_seen[award2][0],updated_seen[award2][1],updated_seen[award2][2],updated_seen[award2][3],updated_seen[award2][4]+[award1]]
-                            updated_seen[award1] = 0  
-                    else:
-                        continue
-                    '''    
-    '''                         
-    most_frequent = []
-    for award in final_seen:
-        if final_seen[award][1] > 1:
-            most_frequent.append(award[0].append(award))
-    return most_frequent
-    '''
     final_seen = {}
     for award in updated_seen: # remove awards that are now alternative names for other
         if updated_seen[award] != 0:
             final_seen[award] = [updated_seen[award][0],updated_seen[award][4]]
     most_frequent = {}
     i = 0
-    '''
-    return_array = []
     for award in final_seen:
-        if final_seen[award][0] > 25:
-            return_array.append([award]+final_seen[award][1])
-    return return_array
-    '''
-    for award in final_seen:
-        # if updated_seen[award][1] > thres: most_frequent.append(award[0].append(award))
         if i < 25:
             most_frequent[award] = final_seen[award]
             i = i + 1
@@ -570,7 +520,7 @@ def rank_awards(awards):
         the_awards.append([award]+most_frequent[award][1])
     return the_awards
 
-def get_min_in_list(list): # list of 2-item lists
+def get_min_in_list(list):
     curr_min_award = list[0][0]
     curr_min = list[0][1]
     for i in range(len(list)):
@@ -604,9 +554,6 @@ def get_max_freq(dict):
             curr_max_award = key
     return (curr_max_award, curr_max)
 
-def get_awards(data):
-    awards = find_awards(data)
-    return rank_awards(awards)
 
 actordict = {}
 moviedict = {}
@@ -662,18 +609,16 @@ def get_people():
         #if tweet[0]=="r" and tweet[1] == "t":
         #    counter+=1
         if tweet.__contains__('nominated') or tweet.__contains__('nominee') or tweet.__contains__('actress') or tweet.__contains__('actor')  or tweet.__contains__('presenting') or tweet.__contains__('win') or tweet.__contains__('tonight') or tweet.__contains__('presenter'):
-            relevant_tweets.append(tweet)
-    for tweet in relevant_tweets:
-        for actor in actordict:
-            last = actordict[actor].lower()
-            actor = actor.lower()
-            lastvec = [actor, last]
-            if tweet.__contains__(actor) and actor not in relevant_actors:
-                if lastvec[-1] == "" or len(lastvec[-1])<=2:
-                    lastvec.pop(-1)
-                    lastvec.append("trewqyuioplkhgd")
-                    lastvec[0] = "a;lskdjfa;lsdkjf"
-                relevant_actors[actor] = lastvec
+            for actor in actordict:
+                last = actordict[actor].lower()
+                actor = actor.lower()
+                lastvec = [actor, last]
+                if tweet.__contains__(actor) and actor not in relevant_actors:
+                    if lastvec[-1] == "" or len(lastvec[-1])<=2:
+                        lastvec.pop(-1)
+                        lastvec.append("trewqyuioplkhgd")
+                        lastvec[0] = "a;lskdjfa;lsdkjf"
+                    relevant_actors[actor] = lastvec
     return relevant_actors
 
 def get_movies():
@@ -686,20 +631,19 @@ def get_movies():
         #if tweet[0]=="r" and tweet[1] == "t":
             #counter+=1
         if tweet.__contains__('nominated') or tweet.__contains__('nominee') or tweet.__contains__('movie') or tweet.__contains__('win') or tweet.__contains__('award') or tweet.__contains__('series') or tweet.__contains__('show'):
-            relevant_tweets.append(tweet)
-    for tweet in relevant_tweets:
-        for movie in titles:
-            movie = movie.lower()
-            if tweet.__contains__(movie) and movie not in relevant_movies:
-                if movie[0]=="t" and movie[1] == "h" and movie[2] == "e":
-                    without_the = movie[4:]
-                    relevant_movies[movie] = [movie, without_the]
-                if len(movie)>=4:
-                    relevant_movies[movie] = [movie]
-        for show in shows:
-            show = show.lower()
-            if tweet.__contains__(show) and len(show)>4:
-                relevant_shows[show] = show
+            for tweet in relevant_tweets:
+                for movie in titles:
+                    movie = movie.lower()
+                    if tweet.__contains__(movie) and movie not in relevant_movies:
+                        if movie[0]=="t" and movie[1] == "h" and movie[2] == "e":
+                            without_the = movie[4:]
+                            relevant_movies[movie] = [movie, without_the]
+                        if len(movie)>=4:
+                            relevant_movies[movie] = [movie]
+                for show in shows:
+                    show = show.lower()
+                    if tweet.__contains__(show) and len(show)>4:
+                        relevant_shows[show] = show
     return [relevant_movies, relevant_shows]
 
 the_shows = {'julia': 'julia', 'modern family': 'modern family', 'medium': 'medium', 'homeland': 'homeland', 'girls': 'girls', 'shameless': 'shameless', 'scandal': 'scandal', 'episodes': 'episodes', 'revenge': 'revenge', 'the girl': 'the girl', 'taggart': 'taggart', 'ellen': 'ellen', 'angel': 'angel', 'the newsroom': 'the newsroom', 'smash': 'smash', 'the goodies': 'the goodies', 'africa': 'africa', 'breaking bad': 'breaking bad', 'matlock': 'matlock', 'the walking dead': 'the walking dead', 'downton abbey': 'downton abbey', 'boardwalk empire': 'boardwalk empire', 'empire': 'empire', 'the big bang theory': 'the big bang theory', 'cheers': 'cheers', 'the flash': 'the flash', 'nashville': 'nashville', 'the andy williams show': 'the andy williams show', 'american horror story': 'american horror story', 'game change': 'game change', 'bones': 'bones', 'bottom': 'bottom', 'californication': 'californication', 'chuck': 'chuck', 'dallas': 'dallas', 'friends': 'friends', 'the hour': 'the hour', 'community': 'community', 'political animals': 'political animals', 'the league': 'the league', 'suits': 'suits', 'hatfields and mccoys': 'hatfields and mccoys', 'seinfeld': 'seinfeld', 'gilmore girls': 'gilmore girls', 'buffy the vampire slayer': 'buffy the vampire slayer', 'dexter': 'dexter', 'dear john': 'dear john', 'teachers': 'teachers', 'alias': 'alias', 'saturday night live': 'saturday night live', 'vicious': 'vicious', 'bodies': 'bodies', 'soul train': 'soul train', 'i spy': 'i spy', 'grimm': 'grimm', 'casanova': 'casanova', 'the thorn birds': 'the thorn birds', 'parenthood': 'parenthood', 'game of thrones': 'game of thrones', 'the only way is essex': 'the only way is essex', 'sherlock': 'sherlock', 'mad men': 'mad men', 'band of brothers': 'band of brothers', 'cracker': 'cracker', 'a grande família': 'a grande família', 'gossip girl': 'gossip girl', 'treme': 'treme', 'stella': 'stella', 'sons of anarchy': 'sons of anarchy', 'firefly': 'firefly', 'once upon a time': 'once upon a time', 'my so-called life': 'my so-called life', 'bread': 'bread', 'true blood': 'true blood', 'merlin': 'merlin', 'minder': 'minder', 'the street': 'the street', 'the wire': 'the wire', 'fargo': 'fargo', 'the flintstones': 'the flintstones', 'castle': 'castle', 'fringe': 'fringe', 'roots': 'roots', 'the x factor': 'the x factor', 'our girl': 'our girl', 'my family': 'my family', 'the west wing': 'the west wing', 'charmed': 'charmed', 'derek': 'derek', "grey's anatomy": "grey's anatomy", 'the unit': 'the unit', 'heroes': 'heroes', 'the bill': 'the bill', 'the office': 'the office', 'the stand': 'the stand', 'new girl': 'new girl', 'veronica mars': 'veronica mars', 'twin peaks': 'twin peaks', '30 rock': '30 rock', 'roswell': 'roswell', 'batman': 'batman', 'the golden girls': 'the golden girls', 'cannon': 'cannon', 'family guy': 'family guy', 'louie': 'louie', 'elementary': 'elementary', 'derrick': 'derrick', 'good times': 'good times', 'the carol burnett show': 'the carol burnett show', 'the following': 'the following', 'the trip': 'the trip', 'happy endings': 'happy endings', 'arrow': 'arrow', 'pretty little liars': 'pretty little liars', 'dynasty': 'dynasty', 'duck dynasty': 'duck dynasty', 'archer': 'archer', 'ray donovan': 'ray donovan', 'star trek': 'star trek', 'dancing with the stars': 'dancing with the stars', 'the americans': 'the americans', 'the avengers': 'the avengers', 'hustle': 'hustle', 'this life': 'this life', 'accused': 'accused', 'entourage': 'entourage', 'maverick': 'maverick', 'parks and recreation': 'parks and recreation', 'absolutely fabulous': 'absolutely fabulous', 'chips': 'chips', 'familie': 'familie', "parade's end": "parade's end", 'the voice': 'the voice', 'skins': 'skins', 'the untouchables': 'the untouchables', 'getting on': 'getting on', 'extras': 'extras', 'prisoner': 'prisoner', 'scrubs': 'scrubs', 'navarro': 'navarro'}
@@ -751,12 +695,6 @@ def compare_winners(votedict, vec):
     return votedict
 
 keywords = ['supporting', 'actor', 'drama', 'motion', 'picture', 'actress', 'tv', 'series', 'miniseries', 'movie', 'original', 'song', 'comedy', 'musical', 'show', 'screenplay', 'animated', 'feature', 'film', 'director']
-
-def checkplus(some_award, a_tweet):
-    for part in some_award:
-        if not a_tweet.__contains__(part):
-            return False
-    return True
 
 winnerMap = {}
 def get_nominees(awards, movielist, tvshows):
@@ -949,107 +887,15 @@ def checkplus_end(some_award, a_tweet):
             return False
     return True
 
-def get_keywords(data):
-    new_awards = []
-    awards_list = rank_awards(data)
-    for awards in awards_list:
-        element = awards[0]
-        if element.__contains__("/") or element.__contains__(",") or element.__contains__("-") or element.__contains__(":"):
-            counter=0
-            string = ""
-            while counter<len(element):
-                if element[counter] != "/" and element[counter] != "," and element[counter] != "-" and element[counter] != ":":
-                    string+=element[counter]
-                elif element[counter] == "," or element[counter]=="-" or element[counter]==":":
-                    pass
-                else:
-                    string+=" "
-                counter+=1
-            element = string
-        element = element.split()
-        vector = []
-        new_award_name = ""
-        counter = 0
-        for word in element:
-            if word == "director":
-                new_award_name = "director "
-                break
-            elif word=="screenplay":
-                new_award_name = "screenplay "
-                break
-            elif word == "animated":
-                new_award_name = "feature film "
-                break
-            elif word in keywords and not new_award_name.__contains__(word):
-                new_award_name+=word
-                new_award_name += " "
-            counter+=1
-        new_award_name = new_award_name[:-1]
-        awards.append(new_award_name)
-        new_awards.append(awards)
-    return new_awards
-
-def plus(data):
-    my_awards = get_keywords(data)
-    first = ""
-    second = ""
-    third = ""
-    for element in my_awards:
-        parsed = element[-1]
-        parsed = parsed.split()
-        counter=0
-        for word in parsed:
-            if counter<len(parsed)-1:
-                if word=="actor" or word=="actress" or word=="screenplay" or word=="picture":
-                    counter+=1
-                    parsed.insert(counter, "plus")
-                else:
-                    counter+=1
-        first = False
-        second = False
-        third = ""
-        one = ""
-        two = ""
-        for word in parsed:
-            if word=="plus":
-                if first == True:
-                    second = True
-                first = True
-            elif first==False:
-                one+=word
-                one+=" "
-            elif first == True and second == False and word != "plus":
-                two+=word
-                two+=" "
-            elif first==True and second==True:
-                third+=word
-                third+=" "
-        parts = []
-        if len(third)>1:
-            one = one[:-1]
-            two = two[:-1]
-            third = third[:-1]
-            parts = [one, two, third]
-        elif len(two)>1:
-            one = one[:-1]
-            two = two[:-1]
-            parts = [one, two]
-        else:
-            one = one[:-1]
-            parts = [one]
-        element[-1] = parts
-    return my_awards
-
-def get_presenters(awards):
+def get_presenters(award):
     tweetarr = []
     presenterMap = defaultdict(int)
     for element in data:
         tweet = element['text'].lower()
-        for aName in awards:
-            if tweet.__contains__(aName):
-                if tweet.__contains__("present"):
-                    tweetarr.append(tweet)   
-    #print("presenter of ", awards[0] ,":")
+        if checkplus_end(award,tweet):
+            if tweet.__contains__("present"):
+                tweetarr.append(tweet)   
+    print("presenter of ", award[0] ,":")
         #print(len(tweetarr))
     for t in tweetarr:
         twt = re.findall("^(.*?)present", t)
@@ -1080,5 +926,5 @@ def combine_nominees(awards):
     return returndict
 '''
 
-print(build_json(data))
-#print(plus(data))
+#print(build_json(data))
+print(get_awards(data))
