@@ -21,10 +21,9 @@ def build_json(data):
     for award in award_names:
         curr_dict = {}
         nominees = get_nominees(award,the_movies,the_shows)
-        curr_dict["nominees:"] = nominees
-        curr_dict["winner:"] = nominees[0]
-        curr_dict["presenters:"] = get_presenters(award)
-        counter+=1
+        curr_dict["Nominees:"] = nominees
+        curr_dict["Winner:"] = nominees[0]
+        curr_dict["Presenters:"] = get_presenters(award)
         award_dict[award[0]] = curr_dict
     return_dict["award data:"] = award_dict
     return return_dict
@@ -925,5 +924,5 @@ def combine_nominees(awards):
     return returndict
 '''
 
-#print(build_json(data))
-print(get_awards(data))
+print(build_json(data))
+#print(get_awards(data))
