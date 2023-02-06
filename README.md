@@ -4,8 +4,12 @@
 ## Packages to download
 
 1. spacy
+```bash
 pip3 install -U spacy
+```
+```bash
 python3 -m spacy download en_core_web_sm
+```
 
 2. 
 
