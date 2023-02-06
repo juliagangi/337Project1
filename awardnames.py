@@ -18,7 +18,6 @@ def build_json(data):
     award_dict = {}
     return_dict["hosts"] = get_hosts()
     award_names = get_awards(data)
-    counter = 0
     for award in award_names:
         curr_dict = {}
         nominees = get_nominees(award,the_movies,the_shows)
