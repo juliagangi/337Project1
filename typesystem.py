@@ -19,7 +19,10 @@ def build_frame(ceremony):
         curr_dict["nominees"] = get_nominees(award)
         curr_dict["winner"] = get_winner(award)
         award_dict[award] = curr_dict
+    award_dict["best dressed"] = get_best_dressed()
+    award_dict["worst dressed"] = get_worst_dressed()
     return return_dict
+
 
 def get_nominees(award):
     return ["nominee1","nominee2"]
@@ -37,7 +40,7 @@ def get_award_names(ceremony):
 print(build_frame("goldenglobes"))
 
 
-'''
+
 actordict = {}
 with open('actors.csv') as csv_file:
     actordict = {}
@@ -59,7 +62,7 @@ with open('actors.csv') as csv_file:
                 index+=1
             actordict[name] = last
 
-'''
+
 with open('gg2013.json', 'r') as f:
     data = json.load(f)
 
@@ -188,12 +191,6 @@ def nominees_given_awards(award, movielist):
             fifth = vote_dict[index]
             nomfive = index
     nominees = [nomone, nomtwo, nomthree, nomfour, nomfive]
-    print('The winner of '+award+' is:')
-    print(nomone)
-    print("    ")
-    print(vote_dict)
-    print("    ")
-    vote_dict = {}
-    return
+    return nominees
 
 
