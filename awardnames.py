@@ -12,7 +12,6 @@ nlp = spacy.load("en_core_web_sm")
 with open('gg2013.json', 'r') as f:
     data = json.load(f)
 
-
 def build_json(data):
     award_names = get_awards(data)
     return_dict = {}
@@ -763,7 +762,6 @@ def get_nominees(awards, movielist, tvshows, persondict):
     third = 0
     fourth = 0
     fifth = 0
-
     nomone = 'a'
     nomtwo = 'b'
     nomthree = 'c'
@@ -806,16 +804,16 @@ def get_nominees(awards, movielist, tvshows, persondict):
             fifth = vote_dict[index]
             nomfive = index
     nominees = [nomone, nomtwo, nomthree, nomfour, nomfive]
-    if nomfive == 'e':
-        nominees.remove(nomfive)
-    if nomfour == 'd':
-        nominees.remove(nomfour)
-    if nomthree == 'c':
-        nominees.remove(nomthree)
-    if nomtwo == 'b':
-        nominees.remove(nomtwo)
-    if nomone == 'a':
-        nominees.remove(nomone)
+    if 'a' in nominees:
+        nominees.remove('a')
+    if 'b' in nominees:
+        nominees.remove('b')
+    if 'c' in nominees:
+        nominees.remove('c')
+    if 'd' in nominees:
+        nominees.remove('d')
+    if 'e' in nominees:
+        nominees.remove('e')
     winnerMap[awards[0]] = nomone
     return nominees
 
@@ -874,7 +872,7 @@ def get_presenters(award):
             presTup = (k,v)
     return presTup[0]
 
-
-
-print(build_json(data))
+mov = get_movies()
+print(get_nominees(['best motion picture, comedy or musical', 'best motion picture, comedy/musical', 'best motion picture - comedy/musical', 'best motion picture comedy or musical', 'best motion picture comedy/musical', ['motion picture', 'comedy musical']],mov[0],mov[1],get_people()))
+#print(build_json(data))
 #print(get_awards(data))
