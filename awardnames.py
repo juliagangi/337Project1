@@ -13,9 +13,11 @@ with open('gg2013.json', 'r') as f:
     data = json.load(f)
 
 def build_json(data):
-    award_names = get_awards(data)
     return_dict = {}
     award_dict = {}
+    award_names = get_awards(data)
+    bestdressed = best_dressed(data)
+    worstdressed = worst_dressed(data)
     hosts = get_hosts()
     return_dict["hosts"] = hosts
     hosts = ', '.join(hosts)
@@ -39,8 +41,6 @@ def build_json(data):
         print('Presenters: '+presenters+'')
         print('Winner: '+winner+'\n')
     return_dict["award data:"] = award_dict
-    bestdressed = best_dressed(data)
-    worstdressed = worst_dressed(data)
     print('Best Dressed: '+bestdressed+'')
     print('Worst Dressed: '+worstdressed+'')
     return return_dict
@@ -872,7 +872,5 @@ def get_presenters(award):
             presTup = (k,v)
     return presTup[0]
 
-mov = get_movies()
-print(get_nominees(['best motion picture, comedy or musical', 'best motion picture, comedy/musical', 'best motion picture - comedy/musical', 'best motion picture comedy or musical', 'best motion picture comedy/musical', ['motion picture', 'comedy musical']],mov[0],mov[1],get_people()))
-#print(build_json(data))
+print(build_json(data))
 #print(get_awards(data))
