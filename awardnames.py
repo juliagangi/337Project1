@@ -162,7 +162,7 @@ def build_json(data):
         nominees = get_nominees(award, the_movies,the_shows)
         curr_dict["nominees:"] = nominees
         curr_dict["winner:"] = nominees[0]
-        curr_dict["presenters:"] = "presenters here"
+        curr_dict["presenters:"] = get_presenters(award)
         counter+=1
         award_dict[award[0]] = curr_dict
     return_dict["award data"] = award_dict
@@ -952,107 +952,16 @@ def checkplus_end(some_award, a_tweet):
             return False
     return True
 
-def get_keywords(data):
-    new_awards = []
-    #awards_list = rank_awards(data)
-    for awards in array_awards:
-        element = awards[0]
-        if element.__contains__("/") or element.__contains__(",") or element.__contains__("-") or element.__contains__(":"):
-            counter=0
-            string = ""
-            while counter<len(element):
-                if element[counter] != "/" and element[counter] != "," and element[counter] != "-" and element[counter] != ":":
-                    string+=element[counter]
-                elif element[counter] == "," or element[counter]=="-" or element[counter]==":":
-                    pass
-                else:
-                    string+=" "
-                counter+=1
-            element = string
-        element = element.split()
-        vector = []
-        new_award_name = ""
-        counter = 0
-        for word in element:
-            if word == "director":
-                new_award_name = "director "
-                break
-            elif word=="screenplay":
-                new_award_name = "screenplay "
-                break
-            elif word == "animated":
-                new_award_name = "feature film "
-                break
-            elif word in keywords and not new_award_name.__contains__(word):
-                new_award_name+=word
-                new_award_name += " "
-            counter+=1
-        new_award_name = new_award_name[:-1]
-        awards.append(new_award_name)
-        new_awards.append(awards)
-    return new_awards
-
-def plus(data):
-    my_awards = get_keywords(data)
-    first = ""
-    second = ""
-    third = ""
-    for element in my_awards:
-        parsed = element[-1]
-        parsed = parsed.split()
-        counter=0
-        for word in parsed:
-            if counter<len(parsed)-1:
-                if word=="actor" or word=="actress" or word=="screenplay" or word=="picture":
-                    counter+=1
-                    parsed.insert(counter, "plus")
-                else:
-                    counter+=1
-        first = False
-        second = False
-        third = ""
-        one = ""
-        two = ""
-        for word in parsed:
-            if word=="plus":
-                if first == True:
-                    second = True
-                first = True
-            elif first==False:
-                one+=word
-                one+=" "
-            elif first == True and second == False and word != "plus":
-                two+=word
-                two+=" "
-            elif first==True and second==True:
-                third+=word
-                third+=" "
-        parts = []
-        if len(third)>1:
-            one = one[:-1]
-            two = two[:-1]
-            third = third[:-1]
-            parts = [one, two, third]
-        elif len(two)>1:
-            one = one[:-1]
-            two = two[:-1]
-            parts = [one, two]
-        else:
-            one = one[:-1]
-            parts = [one]
-        element[-1] = parts
-    return my_awards
 
 def get_presenters(awards):
     tweetarr = []
     presenterMap = defaultdict(int)
     for element in data:
         tweet = element['text'].lower()
-        for aName in awards:
-            if tweet.__contains__(aName):
-                if tweet.__contains__("present"):
-                    tweetarr.append(tweet)   
-    print("presenter of ", awards[0] ,":")
+        if checkplus_end(awards,tweet):
+            if tweet.__contains__("present"):
+                tweetarr.append(tweet)   
+    print("presenter of ", award[0] ,":")
         #print(len(tweetarr))
     for t in tweetarr:
         twt = re.findall("^(.*?)present", t)
