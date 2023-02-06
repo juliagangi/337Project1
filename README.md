@@ -11,8 +11,6 @@ pip3 install -U spacy
 python3 -m spacy download en_core_web_sm
 ```
 
-2. 
-
 ## Running it
 
 Clone the entire main branch. 
