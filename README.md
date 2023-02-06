@@ -22,6 +22,7 @@ Run awardnames.py manually or with the following command:
 python3 awardnames.py
 ```
 
-In the terminal, there will be human readable output printed as the program runs, and json output at the end.
+In the terminal, human readable output will be printed as the program runs.
+Once the program is finishing (after about 9 minutes) json output will be printed.
 
 
