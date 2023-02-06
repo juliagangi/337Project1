@@ -43,6 +43,7 @@ def build_json(data):
     return_dict["award data:"] = award_dict
     print('Best Dressed: '+bestdressed+'')
     print('Worst Dressed: '+worstdressed+'')
+    print(return_dict)
     return return_dict
 
 def get_awards(data):
@@ -872,5 +873,4 @@ def get_presenters(award):
             presTup = (k,v)
     return presTup[0]
 
-print(build_json(data))
-#print(get_awards(data))
+build_json(data)
