@@ -603,10 +603,6 @@ def get_max_freq(dict):
             curr_max_award = key
     return (curr_max_award, curr_max)
 
-def get_awards(data):
-    awards = find_awards(data)
-    return rank_awards(awards)
-
 actordict = {}
 moviedict = {}
 with open('newfile.csv') as csv_file:   
